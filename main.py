@@ -97,11 +97,12 @@ def print_loading_bar(progress):
     print(f'\rThinking: [{bar}] {progress*100:.0f}%', end='', flush=True)
 
 async def main():
-    # Read API key and prompts
-    read_api_key('api_keys.txt')
+    # Read API keys and prompts
+    api_keys = read_api_keys('api_keys.txt')
     prompts = read_prompts('prompts.txt')
 
     print(f"Prompts: {list(prompts.keys())}")
+    print(f"API keys: {list(api_keys.keys())}")
 
     # Read API keys
     api_keys = read_api_keys('api_keys.txt')
