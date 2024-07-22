@@ -11,25 +11,37 @@ def read_api_keys(file_path: str, api_type: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
     config = configparser.ConfigParser()
     config.read(file_path)
-    return dict(config[api_type])
+    try:
+        api_keys = dict(config[api_type])
+        print(f"API keys read for {api_type}: {list(api_keys.keys())}")
+        return api_keys
+    except KeyError:
+        print(f"Error: '{api_type}' section not found in {file_path}")
+        print(f"Available sections: {config.sections()}")
+        return {}
 
 def read_prompts(file_path: str) -> Dict[str, str]:
     """Read prompts from a file and return as a dictionary."""
     prompts = {}
-    with open(file_path, 'r') as f:
-        current_module = None
-        current_prompt = []
-        for line in f:
-            if line.startswith('[') and line.endswith(']\n'):
-                if current_module:
-                    prompts[current_module] = ''.join(current_prompt).strip()
-                current_module = line.strip()[1:-1]
-                current_prompt = []
-            else:
-                current_prompt.append(line)
-        if current_module:
-            prompts[current_module] = ''.join(current_prompt).strip()
-    return prompts
+    try:
+        with open(file_path, 'r') as f:
+            current_module = None
+            current_prompt = []
+            for line in f:
+                if line.startswith('[') and line.endswith(']\n'):
+                    if current_module:
+                        prompts[current_module] = ''.join(current_prompt).strip()
+                    current_module = line.strip()[1:-1]
+                    current_prompt = []
+                else:
+                    current_prompt.append(line)
+            if current_module:
+                prompts[current_module] = ''.join(current_prompt).strip()
+        print(f"Prompts read: {list(prompts.keys())}")
+        return prompts
+    except FileNotFoundError:
+        print(f"Error: Prompt file '{file_path}' not found")
+        return {}
 
 import asyncio
 import aiohttp
@@ -105,15 +117,22 @@ async def main():
     api_keys = read_api_keys('api_keys.txt', api_type)
     prompts = read_prompts('prompts.txt')
 
+    print(f"API keys: {list(api_keys.keys())}")
+    print(f"Prompts: {list(prompts.keys())}")
+
     # Initialize modules
-    modules = {
-        'PIM': Module('PIM', prompts['PIM'], api_keys['PIM'], api_type),
-        'RAM': Module('RAM', prompts['RAM'], api_keys['RAM'], api_type),
-        'EM': Module('EM', prompts['EM'], api_keys['EM'], api_type),
-        'CSM': Module('CSM', prompts['CSM'], api_keys['CSM'], api_type),
-        'ECM': Module('ECM', prompts['ECM'], api_keys['ECM'], api_type),
-        'RGM': Module('RGM', prompts['RGM'], api_keys['RGM'], api_type),
-    }
+    try:
+        modules = {
+            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM'], api_type),
+            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM'], api_type),
+            'EM': Module('EM', prompts['EM'], api_keys['EM'], api_type),
+            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM'], api_type),
+            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM'], api_type),
+            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM'], api_type),
+        }
+    except KeyError as e:
+        print(f"Error: Missing key {e} in either api_keys or prompts")
+        return
 
     # Initialize Global Workspace
     gw = GlobalWorkspace(prompts['GW'], api_keys['GW'], api_type)
