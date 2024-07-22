@@ -53,6 +53,7 @@ class GlobalWorkspace:
         
         max_retries = 3
         retry_delay = 5  # seconds
+        backoff_factor = 2  # Exponential backoff factor
 
         for attempt in range(max_retries):
             try:
@@ -63,8 +64,9 @@ class GlobalWorkspace:
             except aiohttp.ClientResponseError as e:
                 if e.status == 429:
                     if attempt < max_retries - 1:
-                        print(f"Global Workspace: Rate limit exceeded. Retrying in {retry_delay} seconds...")
-                        await asyncio.sleep(retry_delay)
+                        wait_time = retry_delay * (backoff_factor ** attempt)
+                        print(f"Global Workspace: Rate limit exceeded. Retrying in {wait_time} seconds...")
+                        await asyncio.sleep(wait_time)
                     else:
                         response = f"Error: Rate limit exceeded after {max_retries} attempts."
                 else:
