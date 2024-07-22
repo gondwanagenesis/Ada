@@ -7,17 +7,18 @@ from module import Module
 import time
 import configparser
 
-def read_api_keys(file_path: str, api_type: str) -> Dict[str, str]:
+def read_api_keys(file_path: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
-    config = configparser.ConfigParser()
-    config.read(file_path)
+    api_keys = {}
     try:
-        api_keys = dict(config[api_type])
-        print(f"API keys read for {api_type}: {list(api_keys.keys())}")
+        with open(file_path, 'r') as f:
+            for line in f:
+                key, value = line.strip().split('=')
+                api_keys[key] = value
+        print(f"API keys read: {list(api_keys.keys())}")
         return api_keys
-    except KeyError:
-        print(f"Error: '{api_type}' section not found in {file_path}")
-        print(f"Available sections: {config.sections()}")
+    except FileNotFoundError:
+        print(f"Error: API keys file '{file_path}' not found")
         return {}
 
 def read_prompts(file_path: str) -> Dict[str, str]:
@@ -51,12 +52,11 @@ from datetime import datetime
 from module import Module
 
 class GlobalWorkspace:
-    def __init__(self, prompt: str, api_key: str, api_type: str):
+    def __init__(self, prompt: str, api_key: str):
         self.prompt = prompt
         self.api_key = api_key
         self.last_output = None
-        self.api_type = api_type
-        self.api_url = "https://api.groq.com/openai/v1/chat/completions" if api_type == 'GROQ' else "https://api.openai.com/v1/chat/completions"
+        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
         """Process module outputs and return a timestamped response."""
@@ -76,7 +76,7 @@ class GlobalWorkspace:
 
     async def _make_api_call(self, input_data: str) -> str:
         payload = {
-            "model": "mixtral-8x7b-32768" if self.api_type == 'GROQ' else "gpt-4",
+            "model": "mixtral-8x7b-32768",
             "messages": [{"role": "user", "content": input_data}],
             "temperature": 0.7,
             "max_tokens": 1000
@@ -104,17 +104,8 @@ def print_loading_bar(progress):
     print(f'\rThinking: [{bar}] {progress*100:.0f}%', end='', flush=True)
 
 async def main():
-    # Ask user which API to use
-    while True:
-        api_choice = input("Which API would you like to use? (1 for GPT4All, 2 for Groq): ").strip()
-        if api_choice in ['1', '2']:
-            break
-        print("Invalid choice. Please enter 1 or 2.")
-
-    api_type = 'OPENAI' if api_choice == '1' else 'GROQ'
-    
     # Read API keys and prompts
-    api_keys = read_api_keys('api_keys.txt', api_type)
+    api_keys = read_api_keys('api_keys.txt')
     prompts = read_prompts('prompts.txt')
 
     print(f"API keys: {list(api_keys.keys())}")
@@ -123,19 +114,19 @@ async def main():
     # Initialize modules
     try:
         modules = {
-            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM'], api_type),
-            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM'], api_type),
-            'EM': Module('EM', prompts['EM'], api_keys['EM'], api_type),
-            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM'], api_type),
-            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM'], api_type),
-            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM'], api_type),
+            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM']),
+            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM']),
+            'EM': Module('EM', prompts['EM'], api_keys['EM']),
+            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM']),
+            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
+            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM']),
         }
     except KeyError as e:
         print(f"Error: Missing key {e} in either api_keys or prompts")
         return
 
     # Initialize Global Workspace
-    gw = GlobalWorkspace(prompts['GW'], api_keys['GW'], api_type)
+    gw = GlobalWorkspace(prompts['GW'], api_keys['GW'])
 
     while True:
         # User Input Reception

@@ -5,12 +5,11 @@ import asyncio
 from typing import Any
 
 class Module:
-    def __init__(self, name: str, prompt: str, api_key: str, api_type: str):
+    def __init__(self, name: str, prompt: str, api_key: str):
         self.name = name
         self.prompt = prompt
         self.api_key = api_key
-        self.api_type = api_type
-        self.api_url = "https://api.groq.com/openai/v1/chat/completions" if api_type == 'GROQ' else "https://api.openai.com/v1/chat/completions"
+        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def process(self, input_data: Any) -> str:
         """
@@ -31,7 +30,7 @@ class Module:
         full_input = f"{self.prompt}\n\nInput: {input_data}"
         
         payload = {
-            "model": "mixtral-8x7b-32768" if self.api_type == 'GROQ' else "gpt-4",
+            "model": "mixtral-8x7b-32768",
             "messages": [{"role": "user", "content": full_input}],
             "temperature": 0.7,
             "max_tokens": 1000
