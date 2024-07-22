@@ -1,6 +1,8 @@
 from typing import Any
 import aiohttp
 import json
+import asyncio
+from typing import Any
 
 class Module:
     def __init__(self, name: str, prompt: str, api_key: str):
@@ -19,10 +21,27 @@ class Module:
         Returns:
             str: The processed output.
         """
-        # Prepend module's prompt to input_data
+        max_retries = 3
+        retry_delay = 5  # seconds
+
+        for attempt in range(max_retries):
+            try:
+                return await self._make_api_call(input_data)
+            except aiohttp.ClientResponseError as e:
+                if e.status == 429:
+                    if attempt < max_retries - 1:
+                        print(f"{self.name}: Rate limit exceeded. Retrying in {retry_delay} seconds...")
+                        await asyncio.sleep(retry_delay)
+                    else:
+                        return f"Error: Rate limit exceeded after {max_retries} attempts."
+                else:
+                    return f"Error: Unable to process. Status code: {e.status}"
+            except Exception as e:
+                return f"Error: An unexpected error occurred: {str(e)}"
+
+    async def _make_api_call(self, input_data: Any) -> str:
         full_input = f"{self.prompt}\n\nInput: {input_data}"
         
-        # Prepare the request payload
         payload = {
             "model": "mixtral-8x7b-32768",
             "messages": [{"role": "user", "content": full_input}],
@@ -30,7 +49,6 @@ class Module:
             "max_tokens": 1000
         }
 
-        # Make the API call
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.api_url,
@@ -40,10 +58,6 @@ class Module:
                 },
                 data=json.dumps(payload)
             ) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    output = result['choices'][0]['message']['content']
-                else:
-                    output = f"Error: Unable to process. Status code: {response.status}"
-
-        return output
+                response.raise_for_status()
+                result = await response.json()
+                return result['choices'][0]['message']['content']

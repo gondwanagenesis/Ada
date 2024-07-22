@@ -32,6 +32,13 @@ def read_prompts(file_path: str) -> Dict[str, str]:
             prompts[current_module] = ''.join(current_prompt).strip()
     return prompts
 
+import asyncio
+import aiohttp
+import json
+from typing import Dict, Any
+from datetime import datetime
+from module import Module
+
 class GlobalWorkspace:
     def __init__(self, prompt: str, api_key: str):
         self.prompt = prompt
@@ -44,7 +51,32 @@ class GlobalWorkspace:
         formatted_outputs = "\n".join([f"{module}: {output}" for module, output in module_outputs.items()])
         input_data = f"{self.prompt}\n\nModule Outputs:\n{formatted_outputs}"
         
-        # Prepare the request payload
+        max_retries = 3
+        retry_delay = 5  # seconds
+
+        for attempt in range(max_retries):
+            try:
+                response = await self._make_api_call(input_data)
+                timestamp = datetime.now().isoformat()
+                self.last_output = f"[{timestamp}] {response}"
+                return self.last_output
+            except aiohttp.ClientResponseError as e:
+                if e.status == 429:
+                    if attempt < max_retries - 1:
+                        print(f"Global Workspace: Rate limit exceeded. Retrying in {retry_delay} seconds...")
+                        await asyncio.sleep(retry_delay)
+                    else:
+                        response = f"Error: Rate limit exceeded after {max_retries} attempts."
+                else:
+                    response = f"Error: Unable to process. Status code: {e.status}"
+            except Exception as e:
+                response = f"Error: An unexpected error occurred: {str(e)}"
+
+        timestamp = datetime.now().isoformat()
+        self.last_output = f"[{timestamp}] {response}"
+        return self.last_output
+
+    async def _make_api_call(self, input_data: str) -> str:
         payload = {
             "model": "mixtral-8x7b-32768",
             "messages": [{"role": "user", "content": input_data}],
@@ -52,7 +84,6 @@ class GlobalWorkspace:
             "max_tokens": 1000
         }
 
-        # Make the API call
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.api_url,
@@ -62,15 +93,9 @@ class GlobalWorkspace:
                 },
                 data=json.dumps(payload)
             ) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    response = result['choices'][0]['message']['content']
-                else:
-                    response = f"Error: Unable to process. Status code: {response.status}"
-        
-        timestamp = datetime.now().isoformat()
-        self.last_output = f"[{timestamp}] {response}"
-        return self.last_output
+                response.raise_for_status()
+                result = await response.json()
+                return result['choices'][0]['message']['content']
 
     def broadcast(self) -> str:
         """Return the most recent Global Workspace output."""
