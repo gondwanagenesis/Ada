@@ -198,7 +198,13 @@ async def main():
             print(f"\nRGM Input: {rgm_input}")
             print(f"\nRGM Output: {response}")
         print("\n\nAda's response:")
-        print(response)
+        print(response.strip())  # Strip any leading/trailing whitespace
+        
+        # Log the response for debugging
+        with open('response_log.txt', 'a') as log_file:
+            log_file.write(f"Timestamp: {datetime.now().isoformat()}\n")
+            log_file.write(f"User Input: {user_input}\n")
+            log_file.write(f"Ada's Response:\n{response}\n\n")
         print("\n" + "-"*50)  # Add a separator line
 
 if __name__ == "__main__":
