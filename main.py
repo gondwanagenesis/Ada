@@ -92,22 +92,27 @@ class GlobalWorkspace:
         """Return the most recent Global Workspace output."""
         return self.last_output
 
+DEBUG_MODE = False
+
 def print_loading_bar(progress):
     bar_length = 20
     filled_length = int(bar_length * progress)
     bar = '█' * filled_length + '-' * (bar_length - filled_length)
-    print(f'\rThinking: [{bar}] {progress*100:.0f}%', end='', flush=True)
+    print(f'\rThinking: [{bar}] {progress*100:.1f}%', end='', flush=True)
 
 async def main():
+    global DEBUG_MODE
+    # Ask user if they want to run in debug mode
+    debug_input = input("Do you want to run in debug mode? (y/n): ").lower()
+    DEBUG_MODE = debug_input == 'y'
+
     # Read API keys and prompts
     api_keys = read_api_keys('api_keys.txt')
     prompts = read_prompts('prompts.txt')
 
-    print(f"Prompts: {list(prompts.keys())}")
-    print(f"API keys: {list(api_keys.keys())}")
-
-    # Read API keys
-    api_keys = read_api_keys('api_keys.txt')
+    if DEBUG_MODE:
+        print(f"Prompts: {list(prompts.keys())}")
+        print(f"API keys: {list(api_keys.keys())}")
 
     # Initialize modules
     try:
