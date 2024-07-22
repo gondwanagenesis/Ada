@@ -10,7 +10,7 @@ class Module:
         self.name = name
         self.prompt = prompt
         self.api_key = api_key
-        self.api_url = "https://api.openai.com/v1/chat/completions"
+        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def process(self, input_data: Any) -> str:
         """
@@ -31,7 +31,7 @@ class Module:
         full_input = f"{self.prompt}\n\nInput: {input_data}"
         
         payload = {
-            "model": "gpt-3.5-turbo-1106",
+            "model": "mixtral-8x7b-32768",
             "messages": [{"role": "user", "content": full_input}],
             "temperature": 0.7,
             "max_tokens": 1000

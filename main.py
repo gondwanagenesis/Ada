@@ -15,12 +15,15 @@ def read_api_keys(file_path: str) -> Dict[str, str]:
     api_keys = {}
     try:
         with open(file_path, 'r') as f:
+            groq_section = False
             for line in f:
                 line = line.strip()
-                if line and '=' in line:
+                if line == "GROQ KEYS:":
+                    groq_section = True
+                elif groq_section and '=' in line:
                     key, value = line.split('=', 1)
                     api_keys[key.strip()] = value.strip()
-        print("API keys read successfully")
+        print("Groq API keys read successfully")
         return api_keys
     except FileNotFoundError:
         print(f"Error: API key file '{file_path}' not found")
@@ -54,7 +57,7 @@ class GlobalWorkspace:
         self.prompt = prompt
         self.last_output = None
         self.api_key = api_key
-        self.api_url = "https://api.openai.com/v1/chat/completions"
+        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
         """Process module outputs and return a timestamped response."""
@@ -74,7 +77,7 @@ class GlobalWorkspace:
 
     async def _make_api_call(self, input_data: str) -> str:
         payload = {
-            "model": "gpt-3.5-turbo-1106",
+            "model": "mixtral-8x7b-32768",
             "messages": [{"role": "user", "content": input_data}],
             "temperature": 0.7,
             "max_tokens": 1000
@@ -120,19 +123,19 @@ async def main():
     # Initialize modules
     try:
         modules = {
-            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM_API_KEY']),
-            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM_API_KEY']),
-            'EM': Module('EM', prompts['EM'], api_keys['EM_API_KEY']),
-            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM_API_KEY']),
-            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM_API_KEY']),
-            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM_API_KEY']),
+            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM']),
+            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM']),
+            'EM': Module('EM', prompts['EM'], api_keys['EM']),
+            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM']),
+            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
+            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM']),
         }
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
         return
 
     # Initialize Global Workspace
-    gw = GlobalWorkspace(prompts['GW'], api_keys['GW_API_KEY'])
+    gw = GlobalWorkspace(prompts['GW'], api_keys['GW'])
 
     while True:
         # User Input Reception
