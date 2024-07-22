@@ -71,7 +71,7 @@ class GlobalWorkspace:
 
     async def _make_api_call(self, input_data: str) -> str:
         payload = {
-            "model": "gpt-4o-mini",
+            "model": "gpt-3.5-turbo-1106",
             "messages": [{"role": "user", "content": input_data}],
             "temperature": 0.7,
             "max_tokens": 1000
