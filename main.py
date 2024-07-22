@@ -136,17 +136,9 @@ async def main():
             thinking_steps += 1
             # Cognitive Processing
             module_outputs = {}
-        
-            # Process only PIM and one other module per cycle
-            modules_to_process = ['PIM']
-            if thinking_steps % 4 == 1:
-                modules_to_process.append('RAM')
-            elif thinking_steps % 4 == 2:
-                modules_to_process.append('EM')
-            elif thinking_steps % 4 == 3:
-                modules_to_process.append('CSM')
-            else:
-                modules_to_process.append('ECM')
+    
+            # Process PIM and all other cognitive modules except ECM
+            modules_to_process = ['PIM', 'RAM', 'EM', 'CSM']
 
             for module_name in modules_to_process:
                 if module_name == 'PIM' and module_name in module_outputs:
@@ -163,15 +155,17 @@ async def main():
 
             print_loading_bar(0.1 + 0.3 * thinking_steps / 5 + 0.1)  # Progress the loading bar
 
+            # ECM processes after all other modules
+            ecm_output = await modules['ECM'].process(broadcast)
+            module_outputs['ECM'] = ecm_output
+
             # ECM decides whether to continue thinking or generate response
-            if 'ECM' in module_outputs:
-                ecm_decision = module_outputs['ECM']
-                continue_thinking = 'continue' in ecm_decision.lower()
-            else:
-                continue_thinking = thinking_steps < 4  # Ensure at least 4 cycles
+            continue_thinking = 'continue' in ecm_output.lower()
 
             if thinking_steps >= 4:  # Limit the number of thinking cycles to 4
                 continue_thinking = False
+
+            print_loading_bar(0.1 + 0.3 * thinking_steps / 5 + 0.2)  # Progress the loading bar
 
         # Response Generation
         print_loading_bar(0.9)
