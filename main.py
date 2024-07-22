@@ -1,4 +1,6 @@
 import asyncio
+import aiohttp
+import json
 from typing import Dict, Any
 from datetime import datetime
 from module import Module
@@ -35,14 +37,36 @@ class GlobalWorkspace:
         self.prompt = prompt
         self.api_key = api_key
         self.last_output = None
+        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
         """Process module outputs and return a timestamped response."""
         formatted_outputs = "\n".join([f"{module}: {output}" for module, output in module_outputs.items()])
         input_data = f"{self.prompt}\n\nModule Outputs:\n{formatted_outputs}"
         
-        # Simulating API call
-        response = f"Processed by Global Workspace: {input_data}"
+        # Prepare the request payload
+        payload = {
+            "model": "mixtral-8x7b-32768",
+            "messages": [{"role": "user", "content": input_data}],
+            "temperature": 0.7,
+            "max_tokens": 1000
+        }
+
+        # Make the API call
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                self.api_url,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json"
+                },
+                data=json.dumps(payload)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    response = result['choices'][0]['message']['content']
+                else:
+                    response = f"Error: Unable to process. Status code: {response.status}"
         
         timestamp = datetime.now().isoformat()
         self.last_output = f"[{timestamp}] {response}"
