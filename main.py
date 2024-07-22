@@ -5,15 +5,13 @@ from typing import Dict, Any
 from datetime import datetime
 from module import Module
 import time
+import configparser
 
-def read_api_keys(file_path: str) -> Dict[str, str]:
+def read_api_keys(file_path: str, api_type: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
-    api_keys = {}
-    with open(file_path, 'r') as f:
-        for line in f:
-            module_name, api_key = line.strip().split('=')
-            api_keys[module_name] = api_key
-    return api_keys
+    config = configparser.ConfigParser()
+    config.read(file_path)
+    return dict(config[api_type])
 
 def read_prompts(file_path: str) -> Dict[str, str]:
     """Read prompts from a file and return as a dictionary."""
@@ -41,11 +39,12 @@ from datetime import datetime
 from module import Module
 
 class GlobalWorkspace:
-    def __init__(self, prompt: str, api_key: str):
+    def __init__(self, prompt: str, api_key: str, api_type: str):
         self.prompt = prompt
         self.api_key = api_key
         self.last_output = None
-        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
+        self.api_type = api_type
+        self.api_url = "https://api.groq.com/openai/v1/chat/completions" if api_type == 'GROQ' else "https://api.openai.com/v1/chat/completions"
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
         """Process module outputs and return a timestamped response."""
@@ -81,21 +80,19 @@ class GlobalWorkspace:
 
     async def _make_api_call(self, input_data: str) -> str:
         payload = {
-            "model": "mixtral-8x7b-32768",
+            "model": "mixtral-8x7b-32768" if self.api_type == 'GROQ' else "gpt-4",
             "messages": [{"role": "user", "content": input_data}],
             "temperature": 0.7,
             "max_tokens": 1000
         }
 
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                self.api_url,
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json"
-                },
-                data=json.dumps(payload)
-            ) as response:
+            async with session.post(self.api_url, headers=headers, data=json.dumps(payload)) as response:
                 response.raise_for_status()
                 result = await response.json()
                 return result['choices'][0]['message']['content']
@@ -111,22 +108,31 @@ def print_loading_bar(progress):
     print(f'\rThinking: [{bar}] {progress*100:.0f}%', end='', flush=True)
 
 async def main():
+    # Ask user which API to use
+    while True:
+        api_choice = input("Which API would you like to use? (1 for GPT4All, 2 for Groq): ").strip()
+        if api_choice in ['1', '2']:
+            break
+        print("Invalid choice. Please enter 1 or 2.")
+
+    api_type = 'OPENAI' if api_choice == '1' else 'GROQ'
+    
     # Read API keys and prompts
-    api_keys = read_api_keys('api_keys.txt')
+    api_keys = read_api_keys('api_keys.txt', api_type)
     prompts = read_prompts('prompts.txt')
 
     # Initialize modules
     modules = {
-        'PIM': Module('PIM', prompts['PIM'], api_keys['PIM']),
-        'RAM': Module('RAM', prompts['RAM'], api_keys['RAM']),
-        'EM': Module('EM', prompts['EM'], api_keys['EM']),
-        'CSM': Module('CSM', prompts['CSM'], api_keys['CSM']),
-        'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
-        'RGM': Module('RGM', prompts['RGM'], api_keys['RGM']),
+        'PIM': Module('PIM', prompts['PIM'], api_keys['PIM'], api_type),
+        'RAM': Module('RAM', prompts['RAM'], api_keys['RAM'], api_type),
+        'EM': Module('EM', prompts['EM'], api_keys['EM'], api_type),
+        'CSM': Module('CSM', prompts['CSM'], api_keys['CSM'], api_type),
+        'ECM': Module('ECM', prompts['ECM'], api_keys['ECM'], api_type),
+        'RGM': Module('RGM', prompts['RGM'], api_keys['RGM'], api_type),
     }
 
     # Initialize Global Workspace
-    gw = GlobalWorkspace(prompts['GW'], api_keys['GW'])
+    gw = GlobalWorkspace(prompts['GW'], api_keys['GW'], api_type)
 
     while True:
         # User Input Reception
