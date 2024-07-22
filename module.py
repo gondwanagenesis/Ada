@@ -22,25 +22,10 @@ class Module:
         Returns:
             str: The processed output.
         """
-        max_retries = 3
-        retry_delay = 5  # seconds
-        backoff_factor = 2  # Exponential backoff factor
-
-        for attempt in range(max_retries):
-            try:
-                return await self._make_api_call(input_data)
-            except aiohttp.ClientResponseError as e:
-                if e.status == 429:
-                    if attempt < max_retries - 1:
-                        wait_time = retry_delay * (backoff_factor ** attempt)
-                        print(f"{self.name}: Rate limit exceeded. Retrying in {wait_time} seconds...")
-                        await asyncio.sleep(wait_time)
-                    else:
-                        return f"Error: Rate limit exceeded after {max_retries} attempts."
-                else:
-                    return f"Error: Unable to process. Status code: {e.status}"
-            except Exception as e:
-                return f"Error: An unexpected error occurred: {str(e)}"
+        try:
+            return await self._make_api_call(input_data)
+        except Exception as e:
+            return f"Error: An unexpected error occurred: {str(e)}"
 
     async def _make_api_call(self, input_data: Any) -> str:
         full_input = f"{self.prompt}\n\nInput: {input_data}"
@@ -58,7 +43,7 @@ class Module:
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(self.api_url, headers=headers, data=json.dumps(payload)) as response:
+            async with session.post(self.api_url, headers=headers, json=payload) as response:
                 response.raise_for_status()
                 result = await response.json()
                 return result['choices'][0]['message']['content']

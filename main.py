@@ -51,32 +51,16 @@ class GlobalWorkspace:
         formatted_outputs = "\n".join([f"{module}: {output}" for module, output in module_outputs.items()])
         input_data = f"{self.prompt}\n\nModule Outputs:\n{formatted_outputs}"
         
-        max_retries = 3
-        retry_delay = 5  # seconds
-        backoff_factor = 2  # Exponential backoff factor
-
-        for attempt in range(max_retries):
-            try:
-                response = await self._make_api_call(input_data)
-                timestamp = datetime.now().isoformat()
-                self.last_output = f"[{timestamp}] {response}"
-                return self.last_output
-            except aiohttp.ClientResponseError as e:
-                if e.status == 429:
-                    if attempt < max_retries - 1:
-                        wait_time = retry_delay * (backoff_factor ** attempt)
-                        print(f"Global Workspace: Rate limit exceeded. Retrying in {wait_time} seconds...")
-                        await asyncio.sleep(wait_time)
-                    else:
-                        response = f"Error: Rate limit exceeded after {max_retries} attempts."
-                else:
-                    response = f"Error: Unable to process. Status code: {e.status}"
-            except Exception as e:
-                response = f"Error: An unexpected error occurred: {str(e)}"
-
-        timestamp = datetime.now().isoformat()
-        self.last_output = f"[{timestamp}] {response}"
-        return self.last_output
+        try:
+            response = await self._make_api_call(input_data)
+            timestamp = datetime.now().isoformat()
+            self.last_output = f"[{timestamp}] {response}"
+            return self.last_output
+        except Exception as e:
+            response = f"Error: An unexpected error occurred: {str(e)}"
+            timestamp = datetime.now().isoformat()
+            self.last_output = f"[{timestamp}] {response}"
+            return self.last_output
 
     async def _make_api_call(self, input_data: str) -> str:
         payload = {
@@ -92,7 +76,7 @@ class GlobalWorkspace:
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(self.api_url, headers=headers, data=json.dumps(payload)) as response:
+            async with session.post(self.api_url, headers=headers, json=payload) as response:
                 response.raise_for_status()
                 result = await response.json()
                 return result['choices'][0]['message']['content']
@@ -152,17 +136,22 @@ async def main():
             thinking_steps += 1
             # Cognitive Processing
             module_outputs = {}
-            tasks = []
-            for module_name in ['PIM', 'RAM', 'EM', 'CSM', 'ECM']:
+        
+            # Process only PIM and one other module per cycle
+            modules_to_process = ['PIM']
+            if thinking_steps % 4 == 1:
+                modules_to_process.append('RAM')
+            elif thinking_steps % 4 == 2:
+                modules_to_process.append('EM')
+            elif thinking_steps % 4 == 3:
+                modules_to_process.append('CSM')
+            else:
+                modules_to_process.append('ECM')
+
+            for module_name in modules_to_process:
                 if module_name == 'PIM' and module_name in module_outputs:
                     continue  # Skip PIM if it's already processed
-                task = asyncio.create_task(modules[module_name].process(user_input))
-                tasks.append(task)
-
-            # Wait for all tasks to complete
-            outputs = await asyncio.gather(*tasks)
-            for module_name, output in zip(['PIM', 'RAM', 'EM', 'CSM', 'ECM'], outputs):
-                module_outputs[module_name] = output
+                module_outputs[module_name] = await modules[module_name].process(user_input)
 
             print_loading_bar(0.1 + 0.3 * thinking_steps / 5)  # Progress the loading bar
 
@@ -175,10 +164,13 @@ async def main():
             print_loading_bar(0.1 + 0.3 * thinking_steps / 5 + 0.1)  # Progress the loading bar
 
             # ECM decides whether to continue thinking or generate response
-            ecm_decision = await modules['ECM'].process(broadcast)
-            continue_thinking = 'continue' in ecm_decision.lower()
+            if 'ECM' in module_outputs:
+                ecm_decision = module_outputs['ECM']
+                continue_thinking = 'continue' in ecm_decision.lower()
+            else:
+                continue_thinking = thinking_steps < 4  # Ensure at least 4 cycles
 
-            if thinking_steps >= 2:  # Limit the number of thinking cycles to 2
+            if thinking_steps >= 4:  # Limit the number of thinking cycles to 4
                 continue_thinking = False
 
         # Response Generation
