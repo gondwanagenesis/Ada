@@ -3,13 +3,14 @@ import aiohttp
 import json
 import asyncio
 from typing import Any
+import os
 
 class Module:
-    def __init__(self, name: str, prompt: str, api_key: str):
+    def __init__(self, name: str, prompt: str):
         self.name = name
         self.prompt = prompt
-        self.api_key = api_key
-        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
+        self.api_key = os.getenv('OPENAI_API_KEY')
+        self.api_url = "https://api.openai.com/v1/chat/completions"
 
     async def process(self, input_data: Any) -> str:
         """
@@ -30,7 +31,7 @@ class Module:
         full_input = f"{self.prompt}\n\nInput: {input_data}"
         
         payload = {
-            "model": "mixtral-8x7b-32768",
+            "model": "gpt-4o-mini",
             "messages": [{"role": "user", "content": full_input}],
             "temperature": 0.7,
             "max_tokens": 1000

@@ -5,21 +5,20 @@ from typing import Dict, Any
 from datetime import datetime
 from module import Module
 import time
-import configparser
+import os
 
-def read_api_keys(file_path: str) -> Dict[str, str]:
-    """Read API keys from a file and return as a dictionary."""
-    api_keys = {}
+def read_api_key(file_path: str) -> None:
+    """Read API key from a file and set it as an environment variable."""
     try:
         with open(file_path, 'r') as f:
             for line in f:
-                key, value = line.strip().split('=')
-                api_keys[key] = value
-        print(f"API keys read: {list(api_keys.keys())}")
-        return api_keys
+                if line.startswith('OPENAI_API_KEY='):
+                    os.environ['OPENAI_API_KEY'] = line.strip().split('=')[1]
+                    print("API key read successfully")
+                    return
+        print("Error: OPENAI_API_KEY not found in the file")
     except FileNotFoundError:
-        print(f"Error: API keys file '{file_path}' not found")
-        return {}
+        print(f"Error: API key file '{file_path}' not found")
 
 def read_prompts(file_path: str) -> Dict[str, str]:
     """Read prompts from a file and return as a dictionary."""
@@ -44,19 +43,11 @@ def read_prompts(file_path: str) -> Dict[str, str]:
         print(f"Error: Prompt file '{file_path}' not found")
         return {}
 
-import asyncio
-import aiohttp
-import json
-from typing import Dict, Any
-from datetime import datetime
-from module import Module
-
 class GlobalWorkspace:
-    def __init__(self, prompt: str, api_key: str):
+    def __init__(self, prompt: str):
         self.prompt = prompt
-        self.api_key = api_key
         self.last_output = None
-        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
+        self.api_url = "https://api.openai.com/v1/chat/completions"
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
         """Process module outputs and return a timestamped response."""
@@ -76,14 +67,14 @@ class GlobalWorkspace:
 
     async def _make_api_call(self, input_data: str) -> str:
         payload = {
-            "model": "mixtral-8x7b-32768",
+            "model": "gpt-4o-mini",
             "messages": [{"role": "user", "content": input_data}],
             "temperature": 0.7,
             "max_tokens": 1000
         }
 
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
             "Content-Type": "application/json"
         }
 
@@ -104,29 +95,28 @@ def print_loading_bar(progress):
     print(f'\rThinking: [{bar}] {progress*100:.0f}%', end='', flush=True)
 
 async def main():
-    # Read API keys and prompts
-    api_keys = read_api_keys('api_keys.txt')
+    # Read API key and prompts
+    read_api_key('api_keys.txt')
     prompts = read_prompts('prompts.txt')
 
-    print(f"API keys: {list(api_keys.keys())}")
     print(f"Prompts: {list(prompts.keys())}")
 
     # Initialize modules
     try:
         modules = {
-            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM']),
-            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM']),
-            'EM': Module('EM', prompts['EM'], api_keys['EM']),
-            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM']),
-            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
-            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM']),
+            'PIM': Module('PIM', prompts['PIM']),
+            'RAM': Module('RAM', prompts['RAM']),
+            'EM': Module('EM', prompts['EM']),
+            'CSM': Module('CSM', prompts['CSM']),
+            'ECM': Module('ECM', prompts['ECM']),
+            'RGM': Module('RGM', prompts['RGM']),
         }
     except KeyError as e:
-        print(f"Error: Missing key {e} in either api_keys or prompts")
+        print(f"Error: Missing key {e} in prompts")
         return
 
     # Initialize Global Workspace
-    gw = GlobalWorkspace(prompts['GW'], api_keys['GW'])
+    gw = GlobalWorkspace(prompts['GW'])
 
     while True:
         # User Input Reception
