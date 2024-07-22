@@ -192,19 +192,23 @@ async def main():
         # Response Generation
         print_loading_bar(0.9)
         rgm_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {broadcast}\n\nECM Output: {ecm_output}"
-        response = await modules['RGM'].process(rgm_input)
+        rgm_response = await modules['RGM'].process(rgm_input)
         print_loading_bar(1)
         if DEBUG_MODE:
             print(f"\nRGM Input: {rgm_input}")
-            print(f"\nRGM Output: {response}")
+            print(f"\nRGM Output: {rgm_response}")
+        
+        # Extract Ada's response from RGM output
+        ada_response = rgm_response.split("Ada's response:", 1)[-1].strip()
+        
         print("\n\nAda's response:")
-        print(response.strip())  # Strip any leading/trailing whitespace
+        print(ada_response)
         
         # Log the response for debugging
         with open('response_log.txt', 'a') as log_file:
             log_file.write(f"Timestamp: {datetime.now().isoformat()}\n")
             log_file.write(f"User Input: {user_input}\n")
-            log_file.write(f"Ada's Response:\n{response}\n\n")
+            log_file.write(f"Ada's Response:\n{ada_response}\n\n")
         print("\n" + "-"*50)  # Add a separator line
 
 if __name__ == "__main__":
