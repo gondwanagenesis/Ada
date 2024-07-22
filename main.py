@@ -4,6 +4,7 @@ import json
 from typing import Dict, Any
 from datetime import datetime
 from module import Module
+import time
 
 def read_api_keys(file_path: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
@@ -103,6 +104,12 @@ class GlobalWorkspace:
         """Return the most recent Global Workspace output."""
         return self.last_output
 
+def print_loading_bar(progress):
+    bar_length = 20
+    filled_length = int(bar_length * progress)
+    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+    print(f'\rThinking: [{bar}] {progress*100:.0f}%', end='', flush=True)
+
 async def main():
     # Read API keys and prompts
     api_keys = read_api_keys('api_keys.txt')
@@ -123,16 +130,20 @@ async def main():
 
     while True:
         # User Input Reception
-        user_input = input("Enter your input (or 'quit' to exit): ")
+        user_input = input("\nEnter your input (or 'quit' to exit): ")
         if user_input.lower() == 'quit':
             break
 
+        print("\nAda is thinking...")
+        
         # Update PIM with user input
+        print_loading_bar(0.1)
         pim_output = await modules['PIM'].process(user_input)
-        print(f"PIM processed input: {pim_output}")
 
         continue_thinking = True
+        thinking_steps = 0
         while continue_thinking:
+            thinking_steps += 1
             # Cognitive Processing
             module_outputs = {}
             tasks = []
@@ -146,27 +157,31 @@ async def main():
             outputs = await asyncio.gather(*tasks)
             for module_name, output in zip(['PIM', 'RAM', 'EM', 'CSM', 'ECM'], outputs):
                 module_outputs[module_name] = output
-                print(f"{module_name} output: {output}")
+
+            print_loading_bar(0.1 + 0.3 * thinking_steps / 5)  # Progress the loading bar
 
             # Global Workspace Processing
             gw_output = await gw.process(module_outputs)
-            print(f"Global Workspace output: {gw_output}")
 
             # Broadcast GW output
             broadcast = gw.broadcast()
-            print(f"Broadcasting: {broadcast}")
+
+            print_loading_bar(0.1 + 0.3 * thinking_steps / 5 + 0.1)  # Progress the loading bar
 
             # ECM decides whether to continue thinking or generate response
             ecm_decision = await modules['ECM'].process(broadcast)
             continue_thinking = 'continue' in ecm_decision.lower()
-            print(f"ECM decision: {ecm_decision}")
+
+            if thinking_steps >= 5:  # Limit the number of thinking cycles
+                continue_thinking = False
 
         # Response Generation
+        print_loading_bar(0.9)
         response = await modules['RGM'].process(broadcast)
-        print(f"Generated response: {response}")
-
-        # Logging (simplified for this implementation)
-        print("Logging: Input and output for each module logged.")
+        print_loading_bar(1)
+        print("\n\nAda's response:")
+        print(response)
+        print("\n" + "-"*50)  # Add a separator line
 
 if __name__ == "__main__":
     asyncio.run(main())
