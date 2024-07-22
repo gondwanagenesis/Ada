@@ -22,8 +22,10 @@ def read_api_keys(file_path: str) -> Dict[str, str]:
                     groq_section = True
                 elif groq_section and '=' in line:
                     key, value = line.split('=', 1)
-                    api_keys[key.strip()] = value.strip()
+                    module_name = key.split('_')[0]  # Extract module name (e.g., 'PIM' from 'PIM_API_KEY')
+                    api_keys[module_name] = value.strip()
         print("Groq API keys read successfully")
+        print(f"API keys found: {list(api_keys.keys())}")
         return api_keys
     except FileNotFoundError:
         print(f"Error: API key file '{file_path}' not found")
