@@ -7,18 +7,19 @@ from module import Module
 import time
 import os
 
-def read_api_key(file_path: str) -> None:
-    """Read API key from a file and set it as an environment variable."""
+def read_api_keys(file_path: str) -> Dict[str, str]:
+    """Read API keys from a file and return as a dictionary."""
+    api_keys = {}
     try:
         with open(file_path, 'r') as f:
             for line in f:
-                if line.startswith('OPENAI_API_KEY='):
-                    os.environ['OPENAI_API_KEY'] = line.strip().split('=')[1]
-                    print("API key read successfully")
-                    return
-        print("Error: OPENAI_API_KEY not found in the file")
+                key, value = line.strip().split('=')
+                api_keys[key] = value
+        print("API keys read successfully")
+        return api_keys
     except FileNotFoundError:
         print(f"Error: API key file '{file_path}' not found")
+        return {}
 
 def read_prompts(file_path: str) -> Dict[str, str]:
     """Read prompts from a file and return as a dictionary."""
@@ -44,9 +45,10 @@ def read_prompts(file_path: str) -> Dict[str, str]:
         return {}
 
 class GlobalWorkspace:
-    def __init__(self, prompt: str):
+    def __init__(self, prompt: str, api_key: str):
         self.prompt = prompt
         self.last_output = None
+        self.api_key = api_key
         self.api_url = "https://api.openai.com/v1/chat/completions"
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
@@ -74,7 +76,7 @@ class GlobalWorkspace:
         }
 
         headers = {
-            "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
 
@@ -101,22 +103,25 @@ async def main():
 
     print(f"Prompts: {list(prompts.keys())}")
 
+    # Read API keys
+    api_keys = read_api_keys('api_keys.txt')
+
     # Initialize modules
     try:
         modules = {
-            'PIM': Module('PIM', prompts['PIM']),
-            'RAM': Module('RAM', prompts['RAM']),
-            'EM': Module('EM', prompts['EM']),
-            'CSM': Module('CSM', prompts['CSM']),
-            'ECM': Module('ECM', prompts['ECM']),
-            'RGM': Module('RGM', prompts['RGM']),
+            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM_API_KEY']),
+            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM_API_KEY']),
+            'EM': Module('EM', prompts['EM'], api_keys['EM_API_KEY']),
+            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM_API_KEY']),
+            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM_API_KEY']),
+            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM_API_KEY']),
         }
     except KeyError as e:
-        print(f"Error: Missing key {e} in prompts")
+        print(f"Error: Missing key {e} in prompts or API keys")
         return
 
     # Initialize Global Workspace
-    gw = GlobalWorkspace(prompts['GW'])
+    gw = GlobalWorkspace(prompts['GW'], api_keys['GW_API_KEY'])
 
     while True:
         # User Input Reception
