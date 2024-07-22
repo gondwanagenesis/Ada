@@ -172,7 +172,7 @@ async def main():
             ecm_decision = await modules['ECM'].process(broadcast)
             continue_thinking = 'continue' in ecm_decision.lower()
 
-            if thinking_steps >= 5:  # Limit the number of thinking cycles
+            if thinking_steps >= 2:  # Limit the number of thinking cycles to 2
                 continue_thinking = False
 
         # Response Generation
