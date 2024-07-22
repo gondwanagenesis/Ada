@@ -6,10 +6,10 @@ from typing import Any
 import os
 
 class Module:
-    def __init__(self, name: str, prompt: str):
+    def __init__(self, name: str, prompt: str, api_key: str):
         self.name = name
         self.prompt = prompt
-        self.api_key = os.getenv('OPENAI_API_KEY')
+        self.api_key = api_key
         self.api_url = "https://api.openai.com/v1/chat/completions"
 
     async def process(self, input_data: Any) -> str:
