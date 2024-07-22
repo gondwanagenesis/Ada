@@ -13,8 +13,10 @@ def read_api_keys(file_path: str) -> Dict[str, str]:
     try:
         with open(file_path, 'r') as f:
             for line in f:
-                key, value = line.strip().split('=')
-                api_keys[key] = value
+                line = line.strip()
+                if line and '=' in line:
+                    key, value = line.split('=', 1)
+                    api_keys[key.strip()] = value.strip()
         print("API keys read successfully")
         return api_keys
     except FileNotFoundError:
