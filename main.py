@@ -7,6 +7,9 @@ from module import Module
 import time
 import os
 
+# Configuration
+MAX_THOUGHT_LOOPS = 1  # Easily changeable variable for the number of thought loops
+
 def read_api_keys(file_path: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
     api_keys = {}
@@ -145,51 +148,50 @@ async def main():
         if DEBUG_MODE:
             print(f"\nPIM Output: {pim_output}")
 
-        continue_thinking = True
-        thinking_steps = 0
-        while continue_thinking:
-            thinking_steps += 1
-            # Cognitive Processing
-            module_outputs = {}
-    
-            # Process PIM and all other cognitive modules except ECM
-            modules_to_process = ['PIM', 'RAM', 'EM', 'CSM']
+        # First broadcast
+        module_outputs = {}
+        modules_to_process = ['PIM', 'RAM', 'EM', 'CSM']
 
-            for i, module_name in enumerate(modules_to_process):
-                if module_name == 'PIM' and module_name in module_outputs:
-                    continue  # Skip PIM if it's already processed
-                module_outputs[module_name] = await modules[module_name].process(user_input)
-                print_loading_bar(0.05 + 0.15 * (i + 1) / len(modules_to_process))
-                if DEBUG_MODE:
-                    print(f"\n{module_name} Output: {module_outputs[module_name]}")
-
-            # Global Workspace Processing
-            gw_output = await gw.process(module_outputs)
-            print_loading_bar(0.25)
+        for i, module_name in enumerate(modules_to_process):
+            module_outputs[module_name] = await modules[module_name].process(user_input)
+            print_loading_bar(0.05 + 0.15 * (i + 1) / len(modules_to_process))
             if DEBUG_MODE:
-                print(f"\nGW Output: {gw_output}")
+                print(f"\n{module_name} Output: {module_outputs[module_name]}")
 
-            # Broadcast GW output
-            broadcast = gw.broadcast()
+        # Global Workspace Processing
+        gw_output = await gw.process(module_outputs)
+        print_loading_bar(0.25)
+        if DEBUG_MODE:
+            print(f"\nGW Output: {gw_output}")
 
-            # ECM processes after all other modules
-            ecm_output = await modules['ECM'].process(broadcast)
-            module_outputs['ECM'] = ecm_output
-            print_loading_bar(0.3)
+        # Broadcast GW output
+        broadcast = gw.broadcast()
+
+        # Second broadcast
+        for i, module_name in enumerate(modules_to_process):
+            module_outputs[module_name] = await modules[module_name].process(broadcast)
+            print_loading_bar(0.3 + 0.15 * (i + 1) / len(modules_to_process))
             if DEBUG_MODE:
-                print(f"\nECM Output: {ecm_output}")
+                print(f"\n{module_name} Output: {module_outputs[module_name]}")
 
-            # ECM decides whether to continue thinking or generate response
-            continue_thinking = 'continue' in ecm_output.lower()
+        # Global Workspace Processing
+        gw_output = await gw.process(module_outputs)
+        print_loading_bar(0.5)
+        if DEBUG_MODE:
+            print(f"\nGW Output: {gw_output}")
 
-            if thinking_steps >= 4:  # Limit the number of thinking cycles to 4
-                continue_thinking = False
+        # Broadcast GW output
+        broadcast = gw.broadcast()
 
-            print_loading_bar(0.35 + 0.15 * thinking_steps / 4)
+        # ECM processes after second broadcast
+        ecm_output = await modules['ECM'].process(broadcast)
+        print_loading_bar(0.6)
+        if DEBUG_MODE:
+            print(f"\nECM Output: {ecm_output}")
 
         # Response Generation
         print_loading_bar(0.9)
-        rgm_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {broadcast}"
+        rgm_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {broadcast}\n\nECM Output: {ecm_output}"
         response = await modules['RGM'].process(rgm_input)
         print_loading_bar(1)
         if DEBUG_MODE:
