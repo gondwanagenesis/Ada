@@ -31,7 +31,7 @@ class Module:
         full_input = f"{self.prompt}\n\nInput: {input_data}"
         
         payload = {
-            "model": "gpt-4o-mini",
+            "model": "gpt-3.5-turbo",  # Changed from "gpt-4o-mini" to a valid model
             "messages": [{"role": "user", "content": full_input}],
             "temperature": 0.7,
             "max_tokens": 1000
