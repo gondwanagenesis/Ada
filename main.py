@@ -135,8 +135,10 @@ async def main():
         print("\nAda is thinking...")
         
         # Update PIM with user input
-        print_loading_bar(0.1)
+        print_loading_bar(0.05)
         pim_output = await modules['PIM'].process(user_input)
+        if DEBUG_MODE:
+            print(f"\nPIM Output: {pim_output}")
 
         continue_thinking = True
         thinking_steps = 0
@@ -148,24 +150,29 @@ async def main():
             # Process PIM and all other cognitive modules except ECM
             modules_to_process = ['PIM', 'RAM', 'EM', 'CSM']
 
-            for module_name in modules_to_process:
+            for i, module_name in enumerate(modules_to_process):
                 if module_name == 'PIM' and module_name in module_outputs:
                     continue  # Skip PIM if it's already processed
                 module_outputs[module_name] = await modules[module_name].process(user_input)
-
-            print_loading_bar(0.1 + 0.3 * thinking_steps / 5)  # Progress the loading bar
+                print_loading_bar(0.05 + 0.15 * (i + 1) / len(modules_to_process))
+                if DEBUG_MODE:
+                    print(f"\n{module_name} Output: {module_outputs[module_name]}")
 
             # Global Workspace Processing
             gw_output = await gw.process(module_outputs)
+            print_loading_bar(0.25)
+            if DEBUG_MODE:
+                print(f"\nGW Output: {gw_output}")
 
             # Broadcast GW output
             broadcast = gw.broadcast()
 
-            print_loading_bar(0.1 + 0.3 * thinking_steps / 5 + 0.1)  # Progress the loading bar
-
             # ECM processes after all other modules
             ecm_output = await modules['ECM'].process(broadcast)
             module_outputs['ECM'] = ecm_output
+            print_loading_bar(0.3)
+            if DEBUG_MODE:
+                print(f"\nECM Output: {ecm_output}")
 
             # ECM decides whether to continue thinking or generate response
             continue_thinking = 'continue' in ecm_output.lower()
@@ -173,12 +180,14 @@ async def main():
             if thinking_steps >= 4:  # Limit the number of thinking cycles to 4
                 continue_thinking = False
 
-            print_loading_bar(0.1 + 0.3 * thinking_steps / 5 + 0.2)  # Progress the loading bar
+            print_loading_bar(0.35 + 0.15 * thinking_steps / 4)
 
         # Response Generation
         print_loading_bar(0.9)
         response = await modules['RGM'].process(broadcast)
         print_loading_bar(1)
+        if DEBUG_MODE:
+            print(f"\nRGM Output: {response}")
         print("\n\nAda's response:")
         print(response)
         print("\n" + "-"*50)  # Add a separator line
