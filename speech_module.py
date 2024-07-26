@@ -10,14 +10,22 @@ class SpeechModule:
         self.whisper_module = GroqModule('Whisper', '', whisper_api_key)
 
     async def listen(self):
-        with sr.Microphone() as source:
-            print("Listening...")
-            audio = self.recognizer.listen(source)
-        
         try:
+            with sr.Microphone() as source:
+                print("Microphone initialized. Listening...")
+                self.recognizer.adjust_for_ambient_noise(source, duration=1)
+                audio = self.recognizer.listen(source, timeout=10, phrase_time_limit=5)
+            
+            print("Audio captured. Processing...")
             # Use Whisper API for speech recognition
             text = await self.whisper_module.process(audio.get_wav_data())
             return text
+        except sr.WaitTimeoutError:
+            print("No speech detected. Please try again.")
+            return None
+        except sr.RequestError as e:
+            print(f"Could not request results from speech recognition service; {e}")
+            return None
         except Exception as e:
             print(f"Error in speech recognition: {e}")
             return None
