@@ -44,8 +44,8 @@ def read_api_keys(file_path: str) -> Dict[str, str]:
         print(f"Error: API key file '{file_path}' not found")
         return {}
 
-    # Add the TALK API key to the dictionary
-    api_keys['TALK'] = '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'
+    # Add the WHISPER API key to the dictionary
+    api_keys['WHISPER'] = api_keys['LM_API_KEY']  # Using the same OpenAI API key for Whisper
 
 def read_prompts(file_path: str) -> Dict[str, str]:
     """Read prompts from a file and return as a dictionary."""
@@ -206,8 +206,8 @@ async def main():
     global speech_module
     if USE_VOICE_OUTPUT or USE_VOICE_INPUT:
         try:
-            speech_module = SpeechModule(api_keys['TALK'])
-            print("Speech module initialized successfully")
+            speech_module = SpeechModule(api_keys['WHISPER'])
+            print("Speech module initialized successfully with OpenAI Whisper API")
         except Exception as e:
             print(f"Error initializing speech module: {e}")
             print("Falling back to text input/output mode")
