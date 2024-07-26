@@ -167,7 +167,7 @@ async def main():
     # Initialize modules
     try:
         modules = {
-            'LM': GroqModule('LM', prompts['LM'], api_keys['LM']),
+            'LM': Module('LM', prompts['LM'], api_keys['LM_API_KEY']),
             'RAM': Module('RAM', prompts['RAM'], api_keys['RAM_API_KEY']),
             'EM': Module('EM', prompts['EM'], api_keys['EM_API_KEY']),
             'CSM': Module('CSM', prompts['CSM'], api_keys['CSM_API_KEY']),
@@ -177,8 +177,8 @@ async def main():
             'RM': GroqModule('RM', prompts['RM'], api_keys['RM']),
         }
         print("Modules initialized:")
-        print("OpenAI API modules: RAM, EM, CSM, ECM, RGM")
-        print("Groq API modules: LM, CM, RM")
+        print("OpenAI API modules: LM, RAM, EM, CSM, ECM, RGM")
+        print("Groq API modules: CM, RM")
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
         return
