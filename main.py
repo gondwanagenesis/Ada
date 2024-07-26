@@ -49,6 +49,8 @@ def read_prompts(file_path: str) -> Dict[str, str]:
             if current_module:
                 prompts[current_module] = ''.join(current_prompt).strip()
         print(f"Prompts read: {list(prompts.keys())}")
+        if 'LM' not in prompts:
+            print("Warning: 'LM' prompt not found. Please check your prompts.txt file.")
         return prompts
     except FileNotFoundError:
         print(f"Error: Prompt file '{file_path}' not found")
