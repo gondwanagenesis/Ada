@@ -64,7 +64,7 @@ class GlobalWorkspace:
         self.prompt = prompt
         self.last_output = None
         self.api_key = api_key
-        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
+        self.api_url = "https://api.openai.com/v1/chat/completions"
         self.last_two_lm_responses = []
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
@@ -85,7 +85,7 @@ class GlobalWorkspace:
 
     async def _make_api_call(self, input_data: str) -> str:
         payload = {
-            "model": "mixtral-8x7b-32768",
+            "model": "gpt-3.5-turbo",
             "messages": [{"role": "user", "content": input_data}],
             "temperature": 0.7,
             "max_tokens": 1000
@@ -155,12 +155,11 @@ async def main():
     # Initialize modules
     try:
         modules = {
-            'LM': GroqModule('LM', prompts['LM'], api_keys['LM']),
-            'RAM': GroqModule('RAM', prompts['RAM'], api_keys['RAM']),
+            'LM': Module('LM', prompts['LM'], api_keys['LM']),
             'EM': GroqModule('EM', prompts['EM'], api_keys['EM']),
             'CM': GroqModule('CM', prompts['CM'], api_keys['CM']),
             'RM': GroqModule('RM', prompts['RM'], api_keys['RM']),
-            'ECM': GroqModule('ECM', prompts['ECM'], api_keys['ECM']),
+            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
         }
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
