@@ -16,6 +16,9 @@ import sys
 MAX_THOUGHT_LOOPS = 1  # Easily changeable variable for the number of thought loops
 USE_VOICE = True  # Flag to enable/disable voice functionality
 
+# Global variable to store the speech module
+speech_module = None
+
 def read_api_keys(file_path: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
     api_keys = {}
@@ -191,13 +194,15 @@ async def main():
     print("Global Workspace initialized with OpenAI API")
 
     # Initialize SpeechModule
-    try:
-        speech_module = SpeechModule(api_keys['TALK'])
-        print("Speech module initialized successfully")
-    except Exception as e:
-        print(f"Error initializing speech module: {e}")
-        print("Falling back to text input mode")
-        USE_VOICE = False
+    global USE_VOICE, speech_module
+    if USE_VOICE:
+        try:
+            speech_module = SpeechModule(api_keys['TALK'])
+            print("Speech module initialized successfully")
+        except Exception as e:
+            print(f"Error initializing speech module: {e}")
+            print("Falling back to text input mode")
+            USE_VOICE = False
 
     while True:
         # User Input Reception
