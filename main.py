@@ -45,7 +45,7 @@ def read_api_keys(file_path: str) -> Dict[str, str]:
         return {}
 
     # Add the WHISPER API key to the dictionary
-    api_keys['WHISPER'] = api_keys['LM_API_KEY']  # Using the same OpenAI API key for Whisper
+    api_keys['WHISPER'] = api_keys['TALK']  # Using the OpenAI API key for Whisper
 
 def read_prompts(file_path: str) -> Dict[str, str]:
     """Read prompts from a file and return as a dictionary."""

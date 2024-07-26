@@ -2,7 +2,6 @@ import asyncio
 import speech_recognition as sr
 import pyttsx3
 import aiohttp
-import base64
 import io
 
 class SpeechModule:
@@ -35,14 +34,17 @@ class SpeechModule:
 
     async def transcribe_audio(self, audio_data):
         headers = {
-            "Authorization": f"Bearer {self.whisper_api_key}"
+            "Authorization": f"Bearer {self.whisper_api_key}",
+            "Content-Type": "application/octet-stream"
         }
-        data = aiohttp.FormData()
-        data.add_field('file', audio_data, filename='audio.wav', content_type='audio/wav')
-        data.add_field('model', 'whisper-1')
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(self.api_url, headers=headers, data=data) as response:
+            async with session.post(
+                self.api_url,
+                headers=headers,
+                data=audio_data,
+                params={"model": "whisper-1", "language": "en"}
+            ) as response:
                 if response.status == 200:
                     result = await response.json()
                     return result.get('text', '')
