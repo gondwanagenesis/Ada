@@ -1,29 +1,27 @@
 import asyncio
 import speech_recognition as sr
 import pyttsx3
-from module import GroqModule
-import numpy as np
-import wave
+import aiohttp
+import base64
 import io
 
 class SpeechModule:
     def __init__(self, whisper_api_key):
         self.recognizer = sr.Recognizer()
         self.engine = pyttsx3.init()
-        self.whisper_module = GroqModule('Whisper', '', whisper_api_key)
+        self.whisper_api_key = whisper_api_key
+        self.api_url = "https://api.openai.com/v1/audio/transcriptions"
 
     async def listen(self):
         try:
             with sr.Microphone() as source:
                 print("Microphone initialized. Listening...")
                 self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
-                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=3)
+                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
             
             print("Audio captured. Processing...")
-            # Compress audio data
-            compressed_audio = self.compress_audio(audio.get_wav_data())
             # Use Whisper API for speech recognition
-            text = await self.whisper_module.process(compressed_audio)
+            text = await self.transcribe_audio(audio.get_wav_data())
             return text.strip()  # Strip any leading/trailing whitespace
         except sr.WaitTimeoutError:
             print("No speech detected. Please try again.")
@@ -35,29 +33,22 @@ class SpeechModule:
             print(f"Error in speech recognition: {e}")
             return None
 
-    def compress_audio(self, audio_data):
-        # Convert WAV data to numpy array
-        with io.BytesIO(audio_data) as wav_io:
-            with wave.open(wav_io, 'rb') as wav_file:
-                channels = wav_file.getnchannels()
-                framerate = wav_file.getframerate()
-                n_frames = wav_file.getnframes()
-                audio_array = np.frombuffer(wav_file.readframes(n_frames), dtype=np.int16)
+    async def transcribe_audio(self, audio_data):
+        headers = {
+            "Authorization": f"Bearer {self.whisper_api_key}"
+        }
+        data = aiohttp.FormData()
+        data.add_field('file', audio_data, filename='audio.wav', content_type='audio/wav')
+        data.add_field('model', 'whisper-1')
 
-        # Downsample the audio (reduce sample rate by factor of 4)
-        downsampled = audio_array[::4]
-
-        # Reduce bit depth from 16-bit to 8-bit
-        downsampled_8bit = (downsampled / 256).astype(np.int8)
-
-        # Convert back to WAV format
-        with io.BytesIO() as compressed_io:
-            with wave.open(compressed_io, 'wb') as compressed_wav:
-                compressed_wav.setnchannels(channels)
-                compressed_wav.setsampwidth(1)  # 8-bit audio
-                compressed_wav.setframerate(framerate // 4)
-                compressed_wav.writeframes(downsampled_8bit.tobytes())
-            return compressed_io.getvalue()
+        async with aiohttp.ClientSession() as session:
+            async with session.post(self.api_url, headers=headers, data=data) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result.get('text', '')
+                else:
+                    error_text = await response.text()
+                    raise Exception(f"API request failed with status {response.status}: {error_text}")
 
     def speak(self, text):
         self.engine.say(text)
