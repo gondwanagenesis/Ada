@@ -56,6 +56,12 @@ class Module:
                 else:
                     raise ValueError(f"Unexpected API response: {result}")
 
+    def _get_headers(self):
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
 class GroqModule(Module):
     def __init__(self, name: str, prompt: str, api_key: str):
         super().__init__(name, prompt, api_key)
@@ -71,10 +77,7 @@ class GroqModule(Module):
             "max_tokens": 1000
         }
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
+        headers = self._get_headers()
 
         async with aiohttp.ClientSession() as session:
             async with session.post(self.api_url, headers=headers, json=payload) as response:
