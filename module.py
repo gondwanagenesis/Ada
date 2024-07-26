@@ -31,7 +31,7 @@ class Module:
         full_input = f"{self.prompt}\n\nInput: {input_data}"
         
         payload = {
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-3.5-turbo-1106",
             "messages": [
                 {"role": "system", "content": self.prompt},
                 {"role": "user", "content": str(input_data)}
