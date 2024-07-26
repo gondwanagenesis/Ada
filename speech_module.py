@@ -39,22 +39,24 @@ class SpeechModule:
         # Convert WAV data to numpy array
         with io.BytesIO(audio_data) as wav_io:
             with wave.open(wav_io, 'rb') as wav_file:
-                sample_width = wav_file.getsampwidth()
                 channels = wav_file.getnchannels()
                 framerate = wav_file.getframerate()
                 n_frames = wav_file.getnframes()
                 audio_array = np.frombuffer(wav_file.readframes(n_frames), dtype=np.int16)
 
-        # Downsample the audio (reduce sample rate by half)
-        downsampled = audio_array[::2]
+        # Downsample the audio (reduce sample rate by factor of 4)
+        downsampled = audio_array[::4]
+
+        # Reduce bit depth from 16-bit to 8-bit
+        downsampled_8bit = (downsampled / 256).astype(np.int8)
 
         # Convert back to WAV format
         with io.BytesIO() as compressed_io:
             with wave.open(compressed_io, 'wb') as compressed_wav:
                 compressed_wav.setnchannels(channels)
-                compressed_wav.setsampwidth(sample_width)
-                compressed_wav.setframerate(framerate // 2)
-                compressed_wav.writeframes(downsampled.tobytes())
+                compressed_wav.setsampwidth(1)  # 8-bit audio
+                compressed_wav.setframerate(framerate // 4)
+                compressed_wav.writeframes(downsampled_8bit.tobytes())
             return compressed_io.getvalue()
 
     def speak(self, text):
