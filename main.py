@@ -203,24 +203,30 @@ async def main():
             print(f"Error initializing speech module: {e}")
             print("Falling back to text input mode")
             USE_VOICE = False
-
-    while True:
-        # User Input Reception
+    
+    # Function to get user input
+    def get_user_input():
+        global USE_VOICE
         if USE_VOICE:
             try:
                 print("Listening for voice input...")
-                user_input = await speech_module.listen()
+                user_input = speech_module.listen()
                 if user_input is None:
                     print("Sorry, I couldn't understand that. Please try again.")
-                    continue
+                    return None
                 print(f"You said: {user_input}")
+                return user_input
             except Exception as e:
                 print(f"Error with voice input: {e}")
                 print("Falling back to text input")
-                user_input = input("\nEnter your input (or 'quit' to exit): ")
-        else:
-            user_input = input("\nEnter your input (or 'quit' to exit): ")
-        
+                USE_VOICE = False
+        return input("\nEnter your input (or 'quit' to exit): ")
+
+    while True:
+        # User Input Reception
+        user_input = get_user_input()
+        if user_input is None:
+            continue
         if user_input.lower() == 'quit':
             break
 
