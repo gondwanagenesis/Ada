@@ -47,7 +47,9 @@ class Module:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(self.api_url, headers=headers, json=payload) as response:
-                response.raise_for_status()
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise ValueError(f"API request failed with status {response.status}: {error_text}")
                 result = await response.json()
                 if 'choices' in result and len(result['choices']) > 0:
                     return result['choices'][0]['message']['content']
@@ -76,6 +78,11 @@ class GroqModule(Module):
 
         async with aiohttp.ClientSession() as session:
             async with session.post(self.api_url, headers=headers, json=payload) as response:
-                response.raise_for_status()
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise ValueError(f"API request failed with status {response.status}: {error_text}")
                 result = await response.json()
-                return result['choices'][0]['message']['content']
+                if 'choices' in result and len(result['choices']) > 0:
+                    return result['choices'][0]['message']['content']
+                else:
+                    raise ValueError(f"Unexpected API response: {result}")
