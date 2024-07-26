@@ -136,12 +136,12 @@ def create_debug_window():
     debug_window.title("Debug Output")
     debug_text = scrolledtext.ScrolledText(debug_window, wrap=tk.WORD)
     debug_text.pack(expand=True, fill='both')
-    threading.Thread(target=debug_window.mainloop, daemon=True).start()
 
 def update_debug_window(message):
     if debug_text:
         debug_text.insert(tk.END, message + "\n")
         debug_text.see(tk.END)
+        debug_window.update()
 
 async def main():
     global DEBUG_MODE
