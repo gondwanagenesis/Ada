@@ -159,6 +159,7 @@ async def main():
     if DEBUG_MODE:
         update_debug_window(f"Prompts: {list(prompts.keys())}")
         update_debug_window(f"API keys: {list(api_keys.keys())}")
+        debug_window.update()
 
     # Initialize modules
     try:
