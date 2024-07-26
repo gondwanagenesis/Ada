@@ -145,9 +145,19 @@ def print_loading_bar(progress, current_step):
 def create_debug_windows():
     global debug_windows
     modules = ['LM', 'ECM', 'EM', 'CM', 'RM', 'GW']
-    for module in modules:
+    screen_width = tk.Tk().winfo_screenwidth()
+    screen_height = tk.Tk().winfo_screenheight()
+    window_width = screen_width // 3
+    window_height = screen_height // 2
+
+    for i, module in enumerate(modules):
         window = tk.Toplevel()
         window.title(f"{module} Debug Output")
+        window.geometry(f"{window_width}x{window_height}+{(i%3)*window_width}+{(i//3)*window_height}")
+        
+        label = tk.Label(window, text=module, font=("Arial", 16, "bold"))
+        label.pack(pady=10)
+        
         text = scrolledtext.ScrolledText(window, wrap=tk.WORD)
         text.pack(expand=True, fill='both')
         debug_windows[module] = text
