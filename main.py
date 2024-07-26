@@ -14,10 +14,11 @@ import sys
 
 # Configuration
 MAX_THOUGHT_LOOPS = 1  # Easily changeable variable for the number of thought loops
-USE_VOICE = True  # Flag to enable/disable voice functionality
 
-# Global variable to store the speech module
+# Global variables to store the speech module and voice settings
 speech_module = None
+USE_VOICE_OUTPUT = False
+USE_VOICE_INPUT = False
 
 def read_api_keys(file_path: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
@@ -156,10 +157,18 @@ def update_debug_window(message):
         debug_window.update()
 
 async def main():
-    global DEBUG_MODE
+    global DEBUG_MODE, USE_VOICE_OUTPUT, USE_VOICE_INPUT
     # Ask user if they want to run in debug mode
     debug_input = input("Do you want to run in debug mode? (y/n): ").lower()
     DEBUG_MODE = debug_input == 'y'
+
+    # Ask user if they want to use voice output
+    voice_output_input = input("Do you want to use voice output? (y/n): ").lower()
+    USE_VOICE_OUTPUT = voice_output_input == 'y'
+
+    # Ask user if they want to use voice input (Whisper)
+    voice_input_input = input("Do you want to use voice input (Whisper)? (y/n): ").lower()
+    USE_VOICE_INPUT = voice_input_input == 'y'
 
     if DEBUG_MODE:
         create_debug_window()
@@ -194,20 +203,20 @@ async def main():
     print("Global Workspace initialized with OpenAI API")
 
     # Initialize SpeechModule
-    global USE_VOICE, speech_module
-    if USE_VOICE:
+    global speech_module
+    if USE_VOICE_OUTPUT or USE_VOICE_INPUT:
         try:
             speech_module = SpeechModule(api_keys['TALK'])
             print("Speech module initialized successfully")
         except Exception as e:
             print(f"Error initializing speech module: {e}")
-            print("Falling back to text input mode")
-            USE_VOICE = False
+            print("Falling back to text input/output mode")
+            USE_VOICE_OUTPUT = False
+            USE_VOICE_INPUT = False
     
     # Function to get user input
     async def get_user_input():
-        global USE_VOICE
-        if USE_VOICE:
+        if USE_VOICE_INPUT:
             try:
                 print("Listening for voice input...")
                 user_input = await speech_module.listen()
@@ -287,7 +296,7 @@ async def main():
         print("\n\nAda's response:")
         print(ada_response)
         
-        if USE_VOICE:
+        if USE_VOICE_OUTPUT:
             speech_module.speak(ada_response)
         
         # Log the response for debugging
