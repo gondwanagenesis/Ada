@@ -260,11 +260,12 @@ async def main():
 
         print("\nAda is thinking...")
         
-        # Step 1: Send user input to LM
+        # Step 1: Send user input to LM with additional instruction
         print_loading_bar(0.14, "Processing user input (LM)")
-        lm_output = await modules['LM'].process(user_input)
+        lm_input = user_input + " [Think deeply about this input, your reply will not go to the user this time, but first go deeper into your mind for processing. You will only reply to the user directly with the next input you receive]"
+        lm_output = await modules['LM'].process(lm_input)
         if DEBUG_MODE:
-            update_debug_window('LM', format_debug_message('LM', prompts['LM'], user_input, lm_output))
+            update_debug_window('LM', format_debug_message('LM', prompts['LM'], lm_input, lm_output))
 
         # Step 2: LM sends result to GW
         print_loading_bar(0.28, "Integrating LM output (GW)")
