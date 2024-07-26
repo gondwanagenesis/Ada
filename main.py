@@ -218,7 +218,7 @@ async def main():
                     print(f"An error occurred: {user_input}")
                     print("Falling back to text input for this turn.")
                     return input("\nEnter your input (or 'quit' to exit): ")
-                print(f"You said: {user_input}")
+                print(f"\nYou: {user_input}")
                 return user_input
             except Exception as e:
                 print(f"Error with voice input: {e}")
