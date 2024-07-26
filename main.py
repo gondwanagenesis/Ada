@@ -23,11 +23,14 @@ def read_api_keys(file_path: str) -> Dict[str, str]:
                 line = line.strip()
                 if line == "GROQ KEYS:":
                     groq_section = True
-                elif groq_section and '=' in line:
+                elif '=' in line:
                     key, value = line.split('=', 1)
-                    module_name = key.split('_')[0]  # Extract module name (e.g., 'PIM' from 'PIM_API_KEY')
-                    api_keys[module_name] = value.strip()
-        print("Groq API keys read successfully")
+                    if groq_section:
+                        module_name = key.split('_')[0]  # Extract module name (e.g., 'LM' from 'LM_API_KEY')
+                        api_keys[module_name] = value.strip()
+                    else:
+                        api_keys[key] = value.strip()
+        print("API keys read successfully")
         print(f"API keys found: {list(api_keys.keys())}")
         return api_keys
     except FileNotFoundError:
@@ -171,12 +174,16 @@ async def main():
             'RM': GroqModule('RM', prompts['RM'], api_keys['RM']),
             'ECM': Module('ECM', prompts['ECM'], openai_api_key),
         }
+        print("Modules initialized:")
+        print("OpenAI API modules: LM, ECM")
+        print("Groq API modules: EM, CM, RM")
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
         return
 
     # Initialize Global Workspace
     gw = GlobalWorkspace(prompts['GW'], openai_api_key)
+    print("Global Workspace initialized with OpenAI API")
 
     while True:
         # User Input Reception
