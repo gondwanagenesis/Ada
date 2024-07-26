@@ -19,7 +19,7 @@ class SpeechModule:
             print("Audio captured. Processing...")
             # Use Whisper API for speech recognition
             text = await self.whisper_module.process(audio.get_wav_data())
-            return text
+            return text.strip()  # Strip any leading/trailing whitespace
         except sr.WaitTimeoutError:
             print("No speech detected. Please try again.")
             return None

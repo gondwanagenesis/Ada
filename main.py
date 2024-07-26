@@ -205,12 +205,12 @@ async def main():
             USE_VOICE = False
     
     # Function to get user input
-    def get_user_input():
+    async def get_user_input():
         global USE_VOICE
         if USE_VOICE:
             try:
                 print("Listening for voice input...")
-                user_input = speech_module.listen()
+                user_input = await speech_module.listen()
                 if user_input is None:
                     print("Sorry, I couldn't understand that. Please try again.")
                     return None
@@ -224,7 +224,7 @@ async def main():
 
     while True:
         # User Input Reception
-        user_input = get_user_input()
+        user_input = await get_user_input()
         if user_input is None:
             continue
         if user_input.lower() == 'quit':
