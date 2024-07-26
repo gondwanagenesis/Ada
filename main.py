@@ -297,7 +297,7 @@ async def main():
 
         # Step 6: ECM sends response to LM
         print_loading_bar(0.84, "Generating final response (LM)")
-        lm_final_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {gw_output}\n\nECM Output: {ecm_output}"
+        lm_final_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {gw_output}\n\nECM Output: {ecm_output}\n\n[Now you will respond directly to the user's input. Make sure the response is clear and direct, in line with all your directives]"
         lm_final_output = await modules['LM'].process(lm_final_input)
         if DEBUG_MODE:
             update_debug_window('LM', format_debug_message('LM', prompts['LM'], lm_final_input, lm_final_output))
