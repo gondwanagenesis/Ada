@@ -171,16 +171,16 @@ async def main():
     USE_VOICE_INPUT = voice_input_input == 'y'
 
     if DEBUG_MODE:
-        create_debug_window()
+        create_debug_windows()
 
     # Read API keys and prompts
     api_keys = read_api_keys('api_keys.txt')
     prompts = read_prompts('prompts.txt')
 
     if DEBUG_MODE:
-        update_debug_window(f"Prompts: {list(prompts.keys())}")
-        update_debug_window(f"API keys: {list(api_keys.keys())}")
-        debug_window.update()
+        for module in ['LM', 'ECM', 'EM', 'CM', 'RM', 'GW']:
+            update_debug_window(module, f"Prompt: {prompts.get(module, 'Not found')}")
+            update_debug_window(module, f"API Key: {'*' * 10}")
 
     # Initialize modules
     try:
@@ -249,13 +249,13 @@ async def main():
         print_loading_bar(0.14, "Processing user input (LM)")
         lm_output = await modules['LM'].process(user_input)
         if DEBUG_MODE:
-            update_debug_window(f"LM Output: {lm_output}")
+            update_debug_window('LM', format_debug_message('LM', prompts['LM'], user_input, lm_output))
 
         # Step 2: LM sends result to GW
         print_loading_bar(0.28, "Integrating LM output (GW)")
         gw_output = await gw.process({'LM': lm_output})
         if DEBUG_MODE:
-            update_debug_window(f"GW Output: {gw_output}")
+            update_debug_window('GW', format_debug_message('GW', prompts['GW'], {'LM': lm_output}, gw_output))
 
         # Step 3: GW broadcasts to EM, CM, and RM
         broadcast = gw.broadcast()
@@ -265,27 +265,26 @@ async def main():
             print_loading_bar(0.42 + 0.14 * (i / len(cognitive_modules)), f"Processing in {module_name}")
             cognitive_outputs[module_name] = await modules[module_name].process(broadcast)
             if DEBUG_MODE:
-                update_debug_window(f"{module_name} Output: {cognitive_outputs[module_name]}")
+                update_debug_window(module_name, format_debug_message(module_name, prompts[module_name], broadcast, cognitive_outputs[module_name]))
 
         # Step 4: Cognitive Modules send replies to GW
         print_loading_bar(0.56, "Integrating cognitive outputs (GW)")
         gw_output = await gw.process(cognitive_outputs)
         if DEBUG_MODE:
-            update_debug_window(f"GW Output after cognitive processing: {gw_output}")
+            update_debug_window('GW', format_debug_message('GW', prompts['GW'], cognitive_outputs, gw_output))
 
         # Step 5: GW outputs to ECM
         print_loading_bar(0.70, "Executive control processing (ECM)")
         ecm_output = await modules['ECM'].process(gw_output)
         if DEBUG_MODE:
-            update_debug_window(f"ECM Output: {ecm_output}")
+            update_debug_window('ECM', format_debug_message('ECM', prompts['ECM'], gw_output, ecm_output))
 
         # Step 6: ECM sends response to LM
         print_loading_bar(0.84, "Generating final response (LM)")
         lm_final_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {gw_output}\n\nECM Output: {ecm_output}"
         lm_final_output = await modules['LM'].process(lm_final_input)
         if DEBUG_MODE:
-            update_debug_window(f"LM Final Input: {lm_final_input}")
-            update_debug_window(f"LM Final Output: {lm_final_output}")
+            update_debug_window('LM', format_debug_message('LM', prompts['LM'], lm_final_input, lm_final_output))
 
         # Step 7: LM gives final response and updates GW Dictionary
         print_loading_bar(0.98, "Finalizing response")
