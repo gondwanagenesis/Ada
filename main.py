@@ -163,19 +163,20 @@ async def main():
 
     # Initialize modules
     try:
+        openai_api_key = api_keys['OPENAI_API_KEY']
         modules = {
-            'LM': Module('LM', prompts['LM'], api_keys['LM']),
+            'LM': Module('LM', prompts['LM'], openai_api_key),
             'EM': GroqModule('EM', prompts['EM'], api_keys['EM']),
             'CM': GroqModule('CM', prompts['CM'], api_keys['CM']),
             'RM': GroqModule('RM', prompts['RM'], api_keys['RM']),
-            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
+            'ECM': Module('ECM', prompts['ECM'], openai_api_key),
         }
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
         return
 
     # Initialize Global Workspace
-    gw = GlobalWorkspace(prompts['GW'], api_keys['GW'])
+    gw = GlobalWorkspace(prompts['GW'], openai_api_key)
 
     while True:
         # User Input Reception
