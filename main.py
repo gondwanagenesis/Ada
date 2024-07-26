@@ -10,10 +10,11 @@ import os
 import tkinter as tk
 from tkinter import scrolledtext
 import threading
+import sys
 
 # Configuration
 MAX_THOUGHT_LOOPS = 1  # Easily changeable variable for the number of thought loops
-USE_VOICE = True  # Flag to enable/disable voice functionality
+USE_VOICE = False  # Flag to enable/disable voice functionality
 
 def read_api_keys(file_path: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
@@ -271,4 +272,9 @@ async def main():
         print("\n" + "-"*50)  # Add a separator line
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        input("Press Enter to exit...")
+    sys.exit(0)
