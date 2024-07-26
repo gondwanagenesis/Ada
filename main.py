@@ -103,7 +103,10 @@ class GlobalWorkspace:
             async with session.post(self.api_url, headers=headers, json=payload) as response:
                 response.raise_for_status()
                 result = await response.json()
-                return result['choices'][0]['message']['content']
+                if 'choices' in result and len(result['choices']) > 0:
+                    return result['choices'][0]['message']['content']
+                else:
+                    raise ValueError(f"Unexpected API response: {result}")
 
     def broadcast(self) -> str:
         """Return the most recent Global Workspace output."""
