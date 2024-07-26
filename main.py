@@ -148,12 +148,12 @@ def create_debug_windows():
     screen_width = tk.Tk().winfo_screenwidth()
     screen_height = tk.Tk().winfo_screenheight()
     window_width = screen_width // 3
-    window_height = screen_height // 2
+    window_height = screen_height // 3
 
     for i, module in enumerate(modules):
         window = tk.Toplevel()
         window.title(f"{module} Debug Output")
-        window.geometry(f"{window_width}x{window_height}+{(i%3)*window_width}+{(i//3)*window_height}")
+        window.geometry(f"{window_width}x{window_height}+{(i%3)*window_width}+{(i//2)*window_height}")
         
         label = tk.Label(window, text=module, font=("Arial", 16, "bold"))
         label.pack(pady=10)
