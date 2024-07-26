@@ -214,12 +214,16 @@ async def main():
                 if user_input is None:
                     print("Sorry, I couldn't understand that. Please try again.")
                     return None
+                if user_input.startswith("Error:"):
+                    print(f"An error occurred: {user_input}")
+                    print("Falling back to text input for this turn.")
+                    return input("\nEnter your input (or 'quit' to exit): ")
                 print(f"You said: {user_input}")
                 return user_input
             except Exception as e:
                 print(f"Error with voice input: {e}")
-                print("Falling back to text input")
-                USE_VOICE = False
+                print("Falling back to text input for this turn.")
+                return input("\nEnter your input (or 'quit' to exit): ")
         return input("\nEnter your input (or 'quit' to exit): ")
 
     while True:
