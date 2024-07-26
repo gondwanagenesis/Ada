@@ -134,12 +134,12 @@ async def main():
     # Initialize modules
     try:
         modules = {
-            'LM': Module('LM', prompts['LM'], api_keys['LM']),
-            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM']),
+            'LM': GroqModule('LM', prompts['LM'], api_keys['LM']),
+            'RAM': GroqModule('RAM', prompts['RAM'], api_keys['RAM']),
             'EM': GroqModule('EM', prompts['EM'], api_keys['EM']),
             'CM': GroqModule('CM', prompts['CM'], api_keys['CM']),
             'RM': GroqModule('RM', prompts['RM'], api_keys['RM']),
-            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
+            'ECM': GroqModule('ECM', prompts['ECM'], api_keys['ECM']),
         }
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
