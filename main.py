@@ -137,11 +137,11 @@ DEBUG_MODE = False
 debug_window = None
 debug_text = None
 
-def print_loading_bar(progress):
+def print_loading_bar(progress, current_step):
     bar_length = 20
     filled_length = int(bar_length * progress)
     bar = '█' * filled_length + '-' * (bar_length - filled_length)
-    print(f'\rThinking: [{bar}] {progress*100:.1f}%', end='', flush=True)
+    print(f'\rThinking: [{bar}] {progress*100:.1f}% - {current_step}', end='', flush=True)
 
 def create_debug_window():
     global debug_window, debug_text
@@ -246,50 +246,49 @@ async def main():
         print("\nAda is thinking...")
         
         # Step 1: Send user input to LM
-        print_loading_bar(0.1)
+        print_loading_bar(0.14, "Processing user input (LM)")
         lm_output = await modules['LM'].process(user_input)
         if DEBUG_MODE:
             update_debug_window(f"LM Output: {lm_output}")
 
         # Step 2: LM sends result to GW
-        print_loading_bar(0.2)
+        print_loading_bar(0.28, "Integrating LM output (GW)")
         gw_output = await gw.process({'LM': lm_output})
         if DEBUG_MODE:
             update_debug_window(f"GW Output: {gw_output}")
 
         # Step 3: GW broadcasts to EM, CM, and RM
-        print_loading_bar(0.3)
         broadcast = gw.broadcast()
         cognitive_modules = ['EM', 'CM', 'RM']
         cognitive_outputs = {}
         for i, module_name in enumerate(cognitive_modules):
+            print_loading_bar(0.42 + 0.14 * (i / len(cognitive_modules)), f"Processing in {module_name}")
             cognitive_outputs[module_name] = await modules[module_name].process(broadcast)
-            print_loading_bar(0.3 + 0.1 * (i + 1) / len(cognitive_modules))
             if DEBUG_MODE:
                 update_debug_window(f"{module_name} Output: {cognitive_outputs[module_name]}")
 
         # Step 4: Cognitive Modules send replies to GW
-        print_loading_bar(0.6)
+        print_loading_bar(0.56, "Integrating cognitive outputs (GW)")
         gw_output = await gw.process(cognitive_outputs)
         if DEBUG_MODE:
             update_debug_window(f"GW Output after cognitive processing: {gw_output}")
 
         # Step 5: GW outputs to ECM
-        print_loading_bar(0.7)
+        print_loading_bar(0.70, "Executive control processing (ECM)")
         ecm_output = await modules['ECM'].process(gw_output)
         if DEBUG_MODE:
             update_debug_window(f"ECM Output: {ecm_output}")
 
         # Step 6: ECM sends response to LM
-        print_loading_bar(0.8)
+        print_loading_bar(0.84, "Generating final response (LM)")
         lm_final_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {gw_output}\n\nECM Output: {ecm_output}"
         lm_final_output = await modules['LM'].process(lm_final_input)
-        print_loading_bar(0.9)
         if DEBUG_MODE:
             update_debug_window(f"LM Final Input: {lm_final_input}")
             update_debug_window(f"LM Final Output: {lm_final_output}")
 
         # Step 7: LM gives final response and updates GW Dictionary
+        print_loading_bar(0.98, "Finalizing response")
         ada_response = lm_final_output.split("Ada's response:", 1)[-1].strip()
         gw.update_lm_responses(ada_response)
         
