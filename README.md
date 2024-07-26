@@ -78,67 +78,57 @@ Engage with Ada to experience her unique perspective on the world and herself!
 - Add or remove modules by updating the `modules` dictionary in `main.py`.
 
 This cognitive architecture provides a flexible framework for complex information processing, mimicking aspects of human cognition while incorporating ethical considerations and multi-stage information integration.
-# Ada: Advanced Cognitive AI Assistant
 
-## Overview
-Ada is a sophisticated AI assistant that utilizes a modular architecture and a Global Workspace Theory-inspired approach to process and respond to user inputs. This README provides a detailed explanation of Ada's components and thought process.
+## Detailed Architecture and Thought Chain
 
-## System Architecture
-
-Ada's system is composed of several key components:
-
-1. Language Model (LM)
-2. Global Workspace (GW)
-3. Emotion Module (EM)
-4. Cognitive Module (CM)
-5. Reasoning Module (RM)
-6. Executive Control Module (ECM)
-7. Speech Module (optional)
-
-## Thought Process
-
-Ada's thought process for each interaction follows these steps:
+Ada's thought process follows these steps:
 
 1. **User Input Reception**
-   - The system receives input either through text or voice (if enabled).
-   - Voice input is processed using the Speech Module with Whisper API.
+   - The system receives user input either through text or voice (using Whisper API for speech-to-text).
 
-2. **Language Model Processing**
-   - The user input is sent to the Language Model (LM).
-   - LM generates an initial interpretation of the input.
+2. **Language Model (LM) Initial Processing**
+   - Input: User's query + instruction to think deeply
+   - Output: Initial interpretation and analysis of the user's input
+   - The LM is instructed to think deeply about the input, knowing its response will be used for further internal processing.
 
-3. **Global Workspace Integration**
-   - The LM's output is sent to the Global Workspace (GW).
-   - GW processes this information and prepares a broadcast.
+3. **Global Workspace (GW) Integration - Step 1**
+   - Input: LM's initial output
+   - Output: Integrated information ready for broadcast
+   - The GW combines the LM's output with any relevant previous context.
 
 4. **Cognitive Module Processing**
-   - GW broadcasts its state to the Emotion (EM), Cognitive (CM), and Reasoning (RM) modules.
-   - Each module processes the broadcast and generates its own output.
+   - The GW broadcasts its output to three specialized modules:
+     a. Emotional Module (EM)
+        - Input: GW broadcast
+        - Output: Emotional analysis and response
+     b. Cognitive Module (CM)
+        - Input: GW broadcast
+        - Output: Logical reasoning and decision-making
+     c. Reflective Module (RM)
+        - Input: GW broadcast
+        - Output: Self-awareness and metacognitive insights
 
-5. **Global Workspace Update**
-   - The outputs from EM, CM, and RM are sent back to the GW.
-   - GW integrates these outputs to form a comprehensive understanding.
+5. **Global Workspace Integration - Step 2**
+   - Input: Outputs from EM, CM, and RM
+   - Output: Comprehensive integrated information
+   - The GW combines and synthesizes the outputs from all cognitive modules.
 
-6. **Executive Control**
-   - The updated GW state is sent to the Executive Control Module (ECM).
-   - ECM processes this information to guide the final response generation.
+6. **Executive Control Module (ECM) Processing**
+   - Input: GW's integrated output
+   - Output: Executive decision and response strategy
+   - The ECM acts as a high-level controller, making decisions based on the integrated information.
 
-7. **Final Response Generation**
-   - The ECM's output is sent back to the LM along with the original user input and GW output.
-   - LM generates the final response based on all this information.
+7. **Language Model Final Processing**
+   - Input: Original user input, GW output, and ECM output
+   - Output: Final, coherent response to the user
+   - The LM generates the final response, taking into account all processed information.
 
 8. **Response Delivery**
-   - The final response is presented to the user via text.
-   - If voice output is enabled, the response is also spoken using text-to-speech.
+   - The system presents the response to the user via text or voice (using text-to-speech).
 
-## Key Features
+## Global Workspace
 
-- **Modular Architecture**: Allows for specialized processing in different cognitive domains.
-- **Global Workspace**: Facilitates the integration of information from various modules.
-- **Emotion Consideration**: EM ensures emotional context is part of the decision-making process.
-- **Cognitive and Reasoning Capabilities**: CM and RM provide additional layers of analysis.
-- **Executive Control**: ECM helps in managing and directing the final response generation.
-- **Optional Voice Interface**: Supports both voice input and output for natural interaction.
+The Global Workspace acts as a central hub for information integration. It receives inputs from various modules, combines this information with its current state, and broadcasts the integrated information to other modules. This process allows for a more holistic and context-aware response generation.
 
 ## Technical Implementation
 
@@ -148,12 +138,6 @@ Ada's thought process for each interaction follows these steps:
 - Implements a debug mode for detailed insight into the thought process.
 - Logs responses for review and improvement.
 
-## Usage
+## Debug Mode
 
-To interact with Ada:
-1. Ensure all required API keys are set in `api_keys.txt`.
-2. Run the main script and choose debug mode and voice options.
-3. Input your queries or statements.
-4. Ada will process your input and provide a response, optionally with voice output.
-
-Ada's modular and integrated approach allows for complex, context-aware, and emotionally intelligent interactions, making her a highly capable AI assistant.
+When running in debug mode, Ada provides detailed windows showing the inputs, outputs, and prompts for each module, allowing for in-depth analysis of the thought process.
