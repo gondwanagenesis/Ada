@@ -78,3 +78,82 @@ Engage with Ada to experience her unique perspective on the world and herself!
 - Add or remove modules by updating the `modules` dictionary in `main.py`.
 
 This cognitive architecture provides a flexible framework for complex information processing, mimicking aspects of human cognition while incorporating ethical considerations and multi-stage information integration.
+# Ada: Advanced Cognitive AI Assistant
+
+## Overview
+Ada is a sophisticated AI assistant that utilizes a modular architecture and a Global Workspace Theory-inspired approach to process and respond to user inputs. This README provides a detailed explanation of Ada's components and thought process.
+
+## System Architecture
+
+Ada's system is composed of several key components:
+
+1. Language Model (LM)
+2. Global Workspace (GW)
+3. Emotion Module (EM)
+4. Cognitive Module (CM)
+5. Reasoning Module (RM)
+6. Executive Control Module (ECM)
+7. Speech Module (optional)
+
+## Thought Process
+
+Ada's thought process for each interaction follows these steps:
+
+1. **User Input Reception**
+   - The system receives input either through text or voice (if enabled).
+   - Voice input is processed using the Speech Module with Whisper API.
+
+2. **Language Model Processing**
+   - The user input is sent to the Language Model (LM).
+   - LM generates an initial interpretation of the input.
+
+3. **Global Workspace Integration**
+   - The LM's output is sent to the Global Workspace (GW).
+   - GW processes this information and prepares a broadcast.
+
+4. **Cognitive Module Processing**
+   - GW broadcasts its state to the Emotion (EM), Cognitive (CM), and Reasoning (RM) modules.
+   - Each module processes the broadcast and generates its own output.
+
+5. **Global Workspace Update**
+   - The outputs from EM, CM, and RM are sent back to the GW.
+   - GW integrates these outputs to form a comprehensive understanding.
+
+6. **Executive Control**
+   - The updated GW state is sent to the Executive Control Module (ECM).
+   - ECM processes this information to guide the final response generation.
+
+7. **Final Response Generation**
+   - The ECM's output is sent back to the LM along with the original user input and GW output.
+   - LM generates the final response based on all this information.
+
+8. **Response Delivery**
+   - The final response is presented to the user via text.
+   - If voice output is enabled, the response is also spoken using text-to-speech.
+
+## Key Features
+
+- **Modular Architecture**: Allows for specialized processing in different cognitive domains.
+- **Global Workspace**: Facilitates the integration of information from various modules.
+- **Emotion Consideration**: EM ensures emotional context is part of the decision-making process.
+- **Cognitive and Reasoning Capabilities**: CM and RM provide additional layers of analysis.
+- **Executive Control**: ECM helps in managing and directing the final response generation.
+- **Optional Voice Interface**: Supports both voice input and output for natural interaction.
+
+## Technical Implementation
+
+- Uses asynchronous programming for efficient processing.
+- Leverages OpenAI's GPT models for LM and some modules.
+- Utilizes Groq's API for faster processing in some modules.
+- Implements a debug mode for detailed insight into the thought process.
+- Logs responses for review and improvement.
+
+## Usage
+
+To interact with Ada:
+1. Ensure all required API keys are set in `api_keys.txt`.
+2. Run the main script and choose debug mode and voice options.
+3. Input your queries or statements.
+4. Ada will process your input and provide a response, optionally with voice output.
+
+Ada's modular and integrated approach allows for complex, context-aware, and emotionally intelligent interactions, making her a highly capable AI assistant.
