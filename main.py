@@ -3,7 +3,7 @@ import aiohttp
 import json
 from typing import Dict, Any
 from datetime import datetime
-from module import Module
+from module import Module, GroqModule
 import time
 import os
 
@@ -60,6 +60,7 @@ class GlobalWorkspace:
         self.last_output = None
         self.api_key = api_key
         self.api_url = "https://api.groq.com/openai/v1/chat/completions"
+        self.last_two_lm_responses = []
 
     async def process(self, module_outputs: Dict[str, str]) -> str:
         """Process module outputs and return a timestamped response."""
@@ -100,6 +101,12 @@ class GlobalWorkspace:
         """Return the most recent Global Workspace output."""
         return self.last_output
 
+    def update_lm_responses(self, response: str):
+        """Update the last two LM responses."""
+        self.last_two_lm_responses.append(response)
+        if len(self.last_two_lm_responses) > 2:
+            self.last_two_lm_responses.pop(0)
+
 DEBUG_MODE = False
 
 def print_loading_bar(progress):
@@ -125,12 +132,12 @@ async def main():
     # Initialize modules
     try:
         modules = {
-            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM']),
+            'LM': Module('LM', prompts['LM'], api_keys['LM']),
             'RAM': Module('RAM', prompts['RAM'], api_keys['RAM']),
-            'EM': Module('EM', prompts['EM'], api_keys['EM']),
-            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM']),
+            'EM': GroqModule('EM', prompts['EM'], api_keys['EM']),
+            'CM': GroqModule('CM', prompts['CM'], api_keys['CM']),
+            'RM': GroqModule('RM', prompts['RM'], api_keys['RM']),
             'ECM': Module('ECM', prompts['ECM'], api_keys['ECM']),
-            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM']),
         }
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
@@ -147,64 +154,53 @@ async def main():
 
         print("\nAda is thinking...")
         
-        # Update PIM with user input
-        print_loading_bar(0.05)
-        pim_output = await modules['PIM'].process(user_input)
+        # Step 1: Send user input to LM
+        print_loading_bar(0.1)
+        lm_output = await modules['LM'].process(user_input)
         if DEBUG_MODE:
-            print(f"\nPIM Output: {pim_output}")
+            print(f"\nLM Output: {lm_output}")
 
-        # First broadcast
-        module_outputs = {}
-        modules_to_process = ['PIM', 'RAM', 'EM', 'CSM']
-
-        for i, module_name in enumerate(modules_to_process):
-            module_outputs[module_name] = await modules[module_name].process(user_input)
-            print_loading_bar(0.05 + 0.15 * (i + 1) / len(modules_to_process))
-            if DEBUG_MODE:
-                print(f"\n{module_name} Output: {module_outputs[module_name]}")
-
-        # Global Workspace Processing
-        gw_output = await gw.process(module_outputs)
-        print_loading_bar(0.25)
+        # Step 2: LM sends result to GW
+        print_loading_bar(0.2)
+        gw_output = await gw.process({'LM': lm_output})
         if DEBUG_MODE:
             print(f"\nGW Output: {gw_output}")
 
-        # Broadcast GW output
+        # Step 3: GW broadcasts to EM, CM, and RM
+        print_loading_bar(0.3)
         broadcast = gw.broadcast()
-
-        # Second broadcast
-        for i, module_name in enumerate(modules_to_process):
-            module_outputs[module_name] = await modules[module_name].process(broadcast)
-            print_loading_bar(0.3 + 0.15 * (i + 1) / len(modules_to_process))
+        cognitive_modules = ['EM', 'CM', 'RM']
+        cognitive_outputs = {}
+        for i, module_name in enumerate(cognitive_modules):
+            cognitive_outputs[module_name] = await modules[module_name].process(broadcast)
+            print_loading_bar(0.3 + 0.1 * (i + 1) / len(cognitive_modules))
             if DEBUG_MODE:
-                print(f"\n{module_name} Output: {module_outputs[module_name]}")
+                print(f"\n{module_name} Output: {cognitive_outputs[module_name]}")
 
-        # Global Workspace Processing
-        gw_output = await gw.process(module_outputs)
-        print_loading_bar(0.5)
-        if DEBUG_MODE:
-            print(f"\nGW Output: {gw_output}")
-
-        # Broadcast GW output
-        broadcast = gw.broadcast()
-
-        # ECM processes after second broadcast
-        ecm_output = await modules['ECM'].process(broadcast)
+        # Step 4: Cognitive Modules send replies to GW
         print_loading_bar(0.6)
+        gw_output = await gw.process(cognitive_outputs)
+        if DEBUG_MODE:
+            print(f"\nGW Output after cognitive processing: {gw_output}")
+
+        # Step 5: GW outputs to ECM
+        print_loading_bar(0.7)
+        ecm_output = await modules['ECM'].process(gw_output)
         if DEBUG_MODE:
             print(f"\nECM Output: {ecm_output}")
 
-        # Response Generation
+        # Step 6: ECM sends response to LM
+        print_loading_bar(0.8)
+        lm_final_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {gw_output}\n\nECM Output: {ecm_output}"
+        lm_final_output = await modules['LM'].process(lm_final_input)
         print_loading_bar(0.9)
-        rgm_input = f"User Input: {user_input}\n\nGlobal Workspace Output: {broadcast}\n\nECM Output: {ecm_output}"
-        rgm_response = await modules['RGM'].process(rgm_input)
-        print_loading_bar(1)
         if DEBUG_MODE:
-            print(f"\nRGM Input: {rgm_input}")
-            print(f"\nRGM Output: {rgm_response}")
-        
-        # Extract Ada's response from RGM output
-        ada_response = rgm_response.split("Ada's response:", 1)[-1].strip()
+            print(f"\nLM Final Input: {lm_final_input}")
+            print(f"\nLM Final Output: {lm_final_output}")
+
+        # Step 7: LM gives final response and updates GW Dictionary
+        ada_response = lm_final_output.split("Ada's response:", 1)[-1].strip()
+        gw.update_lm_responses(ada_response)
         
         print("\n\nAda's response:")
         print(ada_response)

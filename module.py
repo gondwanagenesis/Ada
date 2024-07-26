@@ -10,6 +10,11 @@ class Module:
         self.name = name
         self.prompt = prompt
         self.api_key = api_key
+        self.api_url = "https://api.openai.com/v1/chat/completions"
+
+class GroqModule(Module):
+    def __init__(self, name: str, prompt: str, api_key: str):
+        super().__init__(name, prompt, api_key)
         self.api_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def process(self, input_data: Any) -> str:
