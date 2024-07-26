@@ -6,6 +6,9 @@ from datetime import datetime
 from module import Module, GroqModule
 import time
 import os
+import tkinter as tk
+from tkinter import scrolledtext
+import threading
 
 # Configuration
 MAX_THOUGHT_LOOPS = 1  # Easily changeable variable for the number of thought loops
@@ -110,6 +113,8 @@ class GlobalWorkspace:
             self.last_two_lm_responses.pop(0)
 
 DEBUG_MODE = False
+debug_window = None
+debug_text = None
 
 def print_loading_bar(progress):
     bar_length = 20
@@ -117,19 +122,35 @@ def print_loading_bar(progress):
     bar = '█' * filled_length + '-' * (bar_length - filled_length)
     print(f'\rThinking: [{bar}] {progress*100:.1f}%', end='', flush=True)
 
+def create_debug_window():
+    global debug_window, debug_text
+    debug_window = tk.Tk()
+    debug_window.title("Debug Output")
+    debug_text = scrolledtext.ScrolledText(debug_window, wrap=tk.WORD)
+    debug_text.pack(expand=True, fill='both')
+    threading.Thread(target=debug_window.mainloop, daemon=True).start()
+
+def update_debug_window(message):
+    if debug_text:
+        debug_text.insert(tk.END, message + "\n")
+        debug_text.see(tk.END)
+
 async def main():
     global DEBUG_MODE
     # Ask user if they want to run in debug mode
     debug_input = input("Do you want to run in debug mode? (y/n): ").lower()
     DEBUG_MODE = debug_input == 'y'
 
+    if DEBUG_MODE:
+        create_debug_window()
+
     # Read API keys and prompts
     api_keys = read_api_keys('api_keys.txt')
     prompts = read_prompts('prompts.txt')
 
     if DEBUG_MODE:
-        print(f"Prompts: {list(prompts.keys())}")
-        print(f"API keys: {list(api_keys.keys())}")
+        update_debug_window(f"Prompts: {list(prompts.keys())}")
+        update_debug_window(f"API keys: {list(api_keys.keys())}")
 
     # Initialize modules
     try:
@@ -160,13 +181,13 @@ async def main():
         print_loading_bar(0.1)
         lm_output = await modules['LM'].process(user_input)
         if DEBUG_MODE:
-            print(f"\nLM Output: {lm_output}")
+            update_debug_window(f"LM Output: {lm_output}")
 
         # Step 2: LM sends result to GW
         print_loading_bar(0.2)
         gw_output = await gw.process({'LM': lm_output})
         if DEBUG_MODE:
-            print(f"\nGW Output: {gw_output}")
+            update_debug_window(f"GW Output: {gw_output}")
 
         # Step 3: GW broadcasts to EM, CM, and RM
         print_loading_bar(0.3)
@@ -177,19 +198,19 @@ async def main():
             cognitive_outputs[module_name] = await modules[module_name].process(broadcast)
             print_loading_bar(0.3 + 0.1 * (i + 1) / len(cognitive_modules))
             if DEBUG_MODE:
-                print(f"\n{module_name} Output: {cognitive_outputs[module_name]}")
+                update_debug_window(f"{module_name} Output: {cognitive_outputs[module_name]}")
 
         # Step 4: Cognitive Modules send replies to GW
         print_loading_bar(0.6)
         gw_output = await gw.process(cognitive_outputs)
         if DEBUG_MODE:
-            print(f"\nGW Output after cognitive processing: {gw_output}")
+            update_debug_window(f"GW Output after cognitive processing: {gw_output}")
 
         # Step 5: GW outputs to ECM
         print_loading_bar(0.7)
         ecm_output = await modules['ECM'].process(gw_output)
         if DEBUG_MODE:
-            print(f"\nECM Output: {ecm_output}")
+            update_debug_window(f"ECM Output: {ecm_output}")
 
         # Step 6: ECM sends response to LM
         print_loading_bar(0.8)
@@ -197,8 +218,8 @@ async def main():
         lm_final_output = await modules['LM'].process(lm_final_input)
         print_loading_bar(0.9)
         if DEBUG_MODE:
-            print(f"\nLM Final Input: {lm_final_input}")
-            print(f"\nLM Final Output: {lm_final_output}")
+            update_debug_window(f"LM Final Input: {lm_final_input}")
+            update_debug_window(f"LM Final Output: {lm_final_output}")
 
         # Step 7: LM gives final response and updates GW Dictionary
         ada_response = lm_final_output.split("Ada's response:", 1)[-1].strip()
