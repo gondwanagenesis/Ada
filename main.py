@@ -134,8 +134,7 @@ class GlobalWorkspace:
             self.last_two_lm_responses.pop(0)
 
 DEBUG_MODE = False
-debug_window = None
-debug_text = None
+debug_windows = {}
 
 def print_loading_bar(progress, current_step):
     bar_length = 20
@@ -143,18 +142,24 @@ def print_loading_bar(progress, current_step):
     bar = '█' * filled_length + '-' * (bar_length - filled_length)
     print(f'\rThinking: [{bar}] {progress*100:.1f}% - {current_step}', end='', flush=True)
 
-def create_debug_window():
-    global debug_window, debug_text
-    debug_window = tk.Tk()
-    debug_window.title("Debug Output")
-    debug_text = scrolledtext.ScrolledText(debug_window, wrap=tk.WORD)
-    debug_text.pack(expand=True, fill='both')
+def create_debug_windows():
+    global debug_windows
+    modules = ['LM', 'ECM', 'EM', 'CM', 'RM', 'GW']
+    for module in modules:
+        window = tk.Toplevel()
+        window.title(f"{module} Debug Output")
+        text = scrolledtext.ScrolledText(window, wrap=tk.WORD)
+        text.pack(expand=True, fill='both')
+        debug_windows[module] = text
 
-def update_debug_window(message):
-    if debug_text:
-        debug_text.insert(tk.END, message + "\n")
-        debug_text.see(tk.END)
-        debug_window.update()
+def update_debug_window(module, message):
+    if module in debug_windows:
+        debug_windows[module].insert(tk.END, message + "\n")
+        debug_windows[module].see(tk.END)
+        debug_windows[module].update()
+
+def format_debug_message(module, prompt, input_data, output):
+    return f"--- {module} ---\nPrompt:\n{prompt}\n\nInput:\n{input_data}\n\nOutput:\n{output}\n\n"
 
 async def main():
     global DEBUG_MODE, USE_VOICE_OUTPUT, USE_VOICE_INPUT
