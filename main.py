@@ -166,23 +166,26 @@ async def main():
 
     # Initialize modules
     try:
-        openai_api_key = api_keys['OPENAI_API_KEY']
         modules = {
-            'LM': Module('LM', prompts['LM'], openai_api_key),
-            'EM': GroqModule('EM', prompts['EM'], api_keys['EM']),
-            'CM': GroqModule('CM', prompts['CM'], api_keys['CM']),
-            'RM': GroqModule('RM', prompts['RM'], api_keys['RM']),
-            'ECM': Module('ECM', prompts['ECM'], openai_api_key),
+            'PIM': Module('PIM', prompts['PIM'], api_keys['PIM_API_KEY']),
+            'RAM': Module('RAM', prompts['RAM'], api_keys['RAM_API_KEY']),
+            'EM': Module('EM', prompts['EM'], api_keys['EM_API_KEY']),
+            'CSM': Module('CSM', prompts['CSM'], api_keys['CSM_API_KEY']),
+            'ECM': Module('ECM', prompts['ECM'], api_keys['ECM_API_KEY']),
+            'RGM': Module('RGM', prompts['RGM'], api_keys['RGM_API_KEY']),
+            'LM': GroqModule('LM', prompts['LM'], api_keys['LM_API_KEY']),
+            'CM': GroqModule('CM', prompts['CM'], api_keys['CM_API_KEY']),
+            'RM': GroqModule('RM', prompts['RM'], api_keys['RM_API_KEY']),
         }
         print("Modules initialized:")
-        print("OpenAI API modules: LM, ECM")
-        print("Groq API modules: EM, CM, RM")
+        print("OpenAI API modules: PIM, RAM, EM, CSM, ECM, RGM")
+        print("Groq API modules: LM, CM, RM")
     except KeyError as e:
         print(f"Error: Missing key {e} in prompts or API keys")
         return
 
     # Initialize Global Workspace
-    gw = GlobalWorkspace(prompts['GW'], openai_api_key)
+    gw = GlobalWorkspace(prompts['GW'], api_keys['GW_API_KEY'])
     print("Global Workspace initialized with OpenAI API")
 
     while True:
