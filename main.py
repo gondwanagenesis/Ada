@@ -4,6 +4,7 @@ import json
 from typing import Dict, Any
 from datetime import datetime
 from module import Module, GroqModule
+from speech_module import SpeechModule
 import time
 import os
 import tkinter as tk
@@ -12,6 +13,7 @@ import threading
 
 # Configuration
 MAX_THOUGHT_LOOPS = 1  # Easily changeable variable for the number of thought loops
+USE_VOICE = True  # Flag to enable/disable voice functionality
 
 def read_api_keys(file_path: str) -> Dict[str, str]:
     """Read API keys from a file and return as a dictionary."""
@@ -36,6 +38,9 @@ def read_api_keys(file_path: str) -> Dict[str, str]:
     except FileNotFoundError:
         print(f"Error: API key file '{file_path}' not found")
         return {}
+
+    # Add the TALK API key to the dictionary
+    api_keys['TALK'] = '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'
 
 def read_prompts(file_path: str) -> Dict[str, str]:
     """Read prompts from a file and return as a dictionary."""
@@ -184,9 +189,21 @@ async def main():
     gw = GlobalWorkspace(prompts['GW'], api_keys['GW_API_KEY'])
     print("Global Workspace initialized with OpenAI API")
 
+    # Initialize SpeechModule
+    speech_module = SpeechModule(api_keys['TALK'])
+
     while True:
         # User Input Reception
-        user_input = input("\nEnter your input (or 'quit' to exit): ")
+        if USE_VOICE:
+            print("Listening for voice input...")
+            user_input = await speech_module.listen()
+            if user_input is None:
+                print("Sorry, I couldn't understand that. Please try again.")
+                continue
+            print(f"You said: {user_input}")
+        else:
+            user_input = input("\nEnter your input (or 'quit' to exit): ")
+        
         if user_input.lower() == 'quit':
             break
 
@@ -242,6 +259,9 @@ async def main():
         
         print("\n\nAda's response:")
         print(ada_response)
+        
+        if USE_VOICE:
+            speech_module.speak(ada_response)
         
         # Log the response for debugging
         with open('response_log.txt', 'a') as log_file:
