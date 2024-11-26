@@ -29,22 +29,49 @@ class ADA:
     def test_apis(self):
         print("Testing APIs...")
         modules = ['GW', 'RM', 'CM', 'EC', 'LM']
+        all_apis_working = True
         for module in modules:
             try:
                 response = self.api_call(module, "Test input")
-                print(f"API test for {module} successful. Response: {response[:50]}...")
+                if response and len(response) > 0:
+                    print(f"API test for {module} successful. Response: {response[:50]}...")
+                else:
+                    print(f"API test for {module} failed. Empty response.")
+                    all_apis_working = False
             except Exception as e:
                 print(f"API test for {module} failed. Error: {str(e)}")
+                all_apis_working = False
+        if all_apis_working:
+            print("All API tests completed successfully.")
+        else:
+            print("WARNING: Some API tests failed. Please check your API keys and network connection.")
         print("API tests complete.")
 
     def test_conversation_flow(self):
         print("Testing conversation flow...")
         test_inputs = ["Hello, ADA!", "How are you today?", "What's the weather like?"]
+        flow_working = True
         for input_text in test_inputs:
-            output = self.process_input(input_text)
-            print(f"Test input: {input_text}")
-            print(f"Test output: {output}")
-            print(f"Memory length: {len(self.short_term_memory)}")
+            try:
+                initial_memory_length = len(self.short_term_memory)
+                output = self.process_input(input_text)
+                final_memory_length = len(self.short_term_memory)
+                
+                print(f"Test input: {input_text}")
+                print(f"Test output: {output}")
+                print(f"Memory length before: {initial_memory_length}, after: {final_memory_length}")
+                
+                if not output or final_memory_length <= initial_memory_length:
+                    print("WARNING: Conversation flow test failed. No output or memory not updated.")
+                    flow_working = False
+            except Exception as e:
+                print(f"ERROR in conversation flow test: {str(e)}")
+                flow_working = False
+        
+        if flow_working:
+            print("Conversation flow test completed successfully.")
+        else:
+            print("WARNING: Conversation flow test encountered issues. Please check the implementation.")
         print("Conversation flow test complete.")
 
     def load_prompts(self) -> Dict[str, str]:
