@@ -17,13 +17,35 @@ class ADA:
     def check_modules(self):
         print("Checking all modules...")
         modules = ['GW', 'RM', 'CM', 'EC', 'LM']
+        prompts_found = []
+        api_keys_found = []
+        modules_initialized = []
+        errors = []
+
         for module in modules:
-            if module not in self.prompts:
-                print(f"Warning: Prompt for {module} not found!")
-            if module not in self.api_keys:
-                print(f"Warning: API key for {module} not found!")
+            if module in self.prompts:
+                prompts_found.append(module)
+            else:
+                errors.append(f"Prompt for {module} not found!")
+            
+            if module in self.api_keys:
+                api_keys_found.append(module)
+            else:
+                errors.append(f"API key for {module} not found!")
+            
             if module in self.prompts and module in self.api_keys:
-                print(f"Module {module} initialized successfully.")
+                modules_initialized.append(module)
+
+        print(f"Prompts found: {', '.join(prompts_found)}")
+        print(f"API keys found: {', '.join(api_keys_found)}")
+        print(f"Modules initialized: {', '.join(modules_initialized)}")
+        
+        if errors:
+            print("Errors:")
+            for error in errors:
+                print(f"- {error}")
+        else:
+            print("All modules checked successfully.")
         print("Module check complete.")
 
     def test_apis(self):
