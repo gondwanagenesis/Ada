@@ -214,7 +214,7 @@ class ADA:
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "grok-1",
+            "model": "grok-beta",
             "messages": [
                 {"role": "system", "content": self.prompts[module]},
                 {"role": "user", "content": input_text}
