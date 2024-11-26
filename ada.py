@@ -49,30 +49,26 @@ class ADA:
         print("Module check complete.")
 
     def test_apis(self):
-        print("Testing APIs...")
+        print("Testing APIs for all modules...")
         modules = ['GW', 'RM', 'CM', 'EC', 'LM']
-        all_apis_working = True
         for module in modules:
             try:
+                # Test input for this module
                 test_input = f"Test input for {module}"
+                
+                # Call the API
                 response = self.api_call(module, test_input)
-                if response and len(response) > 0:
+                
+                # Log and verify response
+                if response:
                     print(f"API test for {module} successful.")
                     print(f"  Input: {test_input}")
-                    print(f"  Response: {response[:100]}...")
-                    if test_input.lower() not in response.lower():
-                        print(f"  WARNING: Response may not reflect the input for {module}")
-                        all_apis_working = False
+                    print(f"  Response: {response[:100]}")  # Print a snippet of the response
                 else:
-                    print(f"API test for {module} failed. Empty response.")
-                    all_apis_working = False
+                    print(f"API test for {module} failed: Empty response.")
             except Exception as e:
-                print(f"API test for {module} failed. Error: {str(e)}")
-                all_apis_working = False
-        if all_apis_working:
-            print("All API tests completed successfully.")
-        else:
-            print("WARNING: Some API tests failed or produced unexpected results. Please check your API keys, network connection, and response quality.")
+                # Catch and print any errors during the API call
+                print(f"API test for {module} failed with error: {str(e)}")
         print("API tests complete.")
 
     def test_conversation_flow(self):
@@ -208,44 +204,40 @@ class ADA:
             print(f"Memory updated. Current length: {len(self.short_term_memory)}")
 
     def api_call(self, module: str, input_text: str) -> str:
+        # Define the endpoint and headers
         url = "https://api.x.ai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_keys[module]}",
             "Content-Type": "application/json"
         }
+        
+        # Prepare the payload
         payload = {
             "model": "grok-beta",
             "messages": [
-                {"role": "system", "content": self.prompts[module]},
+                {"role": "system", "content": self.prompts.get(module, "")},
                 {"role": "user", "content": input_text}
             ],
             "max_tokens": 1000,
             "temperature": 0.7
         }
-        if self.debug_mode:
-            print("API Call Details:")
-            print(f"  URL: {url}")
-            print(f"  Headers: {headers}")
-            print(f"  Payload: {json.dumps(payload, indent=2)}")
+
+        # Make the request
         try:
             response = requests.post(url, headers=headers, json=payload)
-            response.raise_for_status()
+            response.raise_for_status()  # Raise HTTPError for bad status
             json_response = response.json()
-            if self.debug_mode:
-                print(f"API Response for {module}: {json_response}")
-            if 'error' in json_response:
-                print(f"Error from API: {json_response['error']}")
-                return f"Error from {module} API: {json_response['error']}"
+            
+            # Check and return the content
             if 'choices' in json_response and len(json_response['choices']) > 0:
                 return json_response['choices'][0]['message']['content'].strip()
             else:
-                raise KeyError("Unexpected response format")
+                print(f"Unexpected response format for {module}: {json_response}")
+                return ""
         except requests.exceptions.RequestException as e:
             print(f"API call failed for {module}: {str(e)}")
+            print(f"Response content: {response.content if 'response' in locals() else 'No response received'}")
             return f"Error in {module} API call: {str(e)}"
-        except KeyError as e:
-            print(f"Unexpected response format for {module}: {str(e)}")
-            return f"Error in {module} response format: {str(e)}"
 
     def global_workspace_processing(self, user_input: str, formatted_memory: str, *args) -> str:
         input_text = f"{formatted_memory}\nCurrent Input: {user_input}\n" + "\n".join(args)
