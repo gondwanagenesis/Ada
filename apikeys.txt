@@ -8,3 +8,17 @@ xai-X9kspp81tYdg3L4aob3Pf1qSo0Kg8Yq1JSdr37VTQ8mgVhXNMgHpZ2NfV4ORPqx270TeJIYYU4xD
 xai-saJs97FeX2l6P3irJLiHYvYkS7tzfGmQLPkYsIpc96BMvvF5dAbR8GJo9kzXeeU4fCa5auTLlavFC6rH
 [LM]
 xai-TLFugtDWM1ByCeA0OnBn5jqRyUnXHTQCfQxRZ0GIJJNaCadrIkCqAdtZA6psrvAXCIVEBkQbZFYXln1d
+[GW]
+your_gw_api_key_here
+
+[RM]
+your_rm_api_key_here
+
+[CM]
+your_cm_api_key_here
+
+[EC]
+your_ec_api_key_here
+
+[LM]
+your_lm_api_key_here
