@@ -87,8 +87,24 @@ class ADA:
             "model": "grok-2-model",
             "input": f"{self.prompts[module]}\n\nInput: {input_text}"
         }
-        response = requests.post(url, headers=headers, json=payload)
-        return response.json()['output']
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            response.raise_for_status()  # Raise an exception for bad status codes
+            json_response = response.json()
+            if self.debug_mode:
+                print(f"API Response for {module}: {json_response}")
+            if 'output' in json_response:
+                return json_response['output']
+            elif 'choices' in json_response and len(json_response['choices']) > 0:
+                return json_response['choices'][0]['text']
+            else:
+                raise KeyError("Unexpected response format")
+        except requests.exceptions.RequestException as e:
+            print(f"API call failed for {module}: {str(e)}")
+            return f"Error in {module} API call: {str(e)}"
+        except KeyError as e:
+            print(f"Unexpected response format for {module}: {str(e)}")
+            return f"Error in {module} response format: {str(e)}"
 
     def global_workspace_processing(self, user_input: str, formatted_memory: str, *args) -> str:
         input_text = f"{formatted_memory}\nCurrent Input: {user_input}\n" + "\n".join(args)
