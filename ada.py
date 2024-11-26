@@ -6,57 +6,106 @@ class ADA:
     def __init__(self, debug_mode: bool = False):
         self.short_term_memory: List[Dict[str, str]] = []
         self.debug_mode = debug_mode
+        print("Initializing ADA...")
         self.prompts = self.load_prompts()
         self.api_keys = self.load_api_keys()
+        self.check_modules()
+        
+    def check_modules(self):
+        print("Checking all modules...")
+        modules = ['GW', 'RM', 'CM', 'EC', 'LM']
+        for module in modules:
+            if module not in self.prompts:
+                print(f"Warning: Prompt for {module} not found!")
+            if module not in self.api_keys:
+                print(f"Warning: API key for {module} not found!")
+            if module in self.prompts and module in self.api_keys:
+                print(f"Module {module} initialized successfully.")
+        print("Module check complete.")
 
     def load_prompts(self) -> Dict[str, str]:
+        print("Loading prompts...")
         prompts = {}
-        with open('prompts.txt', 'r', encoding='utf-8') as file:
-            current_module = None
-            for line in file:
-                if line.strip().startswith('[') and line.strip().endswith(']'):
-                    current_module = line.strip()[1:-1]
-                    prompts[current_module] = ""
-                elif current_module:
-                    prompts[current_module] += line
+        try:
+            with open('prompts.txt', 'r', encoding='utf-8') as file:
+                current_module = None
+                for line in file:
+                    if line.strip().startswith('[') and line.strip().endswith(']'):
+                        current_module = line.strip()[1:-1]
+                        prompts[current_module] = ""
+                        print(f"Found prompt for module: {current_module}")
+                    elif current_module:
+                        prompts[current_module] += line
+            print(f"Loaded {len(prompts)} prompts successfully.")
+        except FileNotFoundError:
+            print("Error: prompts.txt file not found!")
+        except Exception as e:
+            print(f"Error loading prompts: {str(e)}")
         return prompts
 
     def load_api_keys(self) -> Dict[str, str]:
+        print("Loading API keys...")
         api_keys = {}
-        with open('apikeys.txt', 'r', encoding='utf-8') as file:
-            current_module = None
-            for line in file:
-                if line.strip().startswith('[') and line.strip().endswith(']'):
-                    current_module = line.strip()[1:-1]
-                elif current_module:
-                    api_keys[current_module] = line.strip()
+        try:
+            with open('apikeys.txt', 'r', encoding='utf-8') as file:
+                current_module = None
+                for line in file:
+                    if line.strip().startswith('[') and line.strip().endswith(']'):
+                        current_module = line.strip()[1:-1]
+                        print(f"Found API key for module: {current_module}")
+                    elif current_module:
+                        api_keys[current_module] = line.strip()
+            print(f"Loaded {len(api_keys)} API keys successfully.")
+        except FileNotFoundError:
+            print("Error: apikeys.txt file not found!")
+        except Exception as e:
+            print(f"Error loading API keys: {str(e)}")
         return api_keys
 
     def process_input(self, user_input: str) -> str:
+        if self.debug_mode:
+            print(f"Processing input: {user_input}")
+        
         # Step 2: Short-Term Memory Integration
         formatted_memory = self.format_memory()
+        if self.debug_mode:
+            print(f"Formatted memory: {formatted_memory}")
         
         # Step 3: Global Workspace Processing
         gw_output = self.global_workspace_processing(user_input, formatted_memory)
+        if self.debug_mode:
+            print(f"Global Workspace output: {gw_output}")
         
         # Step 4: Broadcast to Cognitive Modules
         rm_output = self.reasoning_module(gw_output)
         cm_output = self.creative_module(gw_output)
+        if self.debug_mode:
+            print(f"Reasoning Module output: {rm_output}")
+            print(f"Creative Module output: {cm_output}")
         
         # Step 5: Cross-Module Feedback
         rm_refined = self.reasoning_module(gw_output + cm_output)
         cm_refined = self.creative_module(gw_output + rm_output)
+        if self.debug_mode:
+            print(f"Refined Reasoning Module output: {rm_refined}")
+            print(f"Refined Creative Module output: {cm_refined}")
         
         # Step 6: Consolidation in Global Workspace
         consolidated_thought = self.global_workspace_processing(
             user_input, formatted_memory, rm_refined, cm_refined
         )
+        if self.debug_mode:
+            print(f"Consolidated thought: {consolidated_thought}")
         
         # Step 7: Executive Control
         ec_output = self.executive_control(consolidated_thought)
+        if self.debug_mode:
+            print(f"Executive Control output: {ec_output}")
         
         # Step 8: Language Module
         final_output = self.language_module(user_input, consolidated_thought, ec_output)
+        if self.debug_mode:
+            print(f"Final output: {final_output}")
         
         # Step 9: User Output
         self.update_memory(user_input, final_output)
