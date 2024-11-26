@@ -10,6 +10,9 @@ class ADA:
         self.prompts = self.load_prompts()
         self.api_keys = self.load_api_keys()
         self.check_modules()
+        if self.debug_mode:
+            self.test_apis()
+            self.test_conversation_flow()
         
     def check_modules(self):
         print("Checking all modules...")
@@ -22,6 +25,27 @@ class ADA:
             if module in self.prompts and module in self.api_keys:
                 print(f"Module {module} initialized successfully.")
         print("Module check complete.")
+
+    def test_apis(self):
+        print("Testing APIs...")
+        modules = ['GW', 'RM', 'CM', 'EC', 'LM']
+        for module in modules:
+            try:
+                response = self.api_call(module, "Test input")
+                print(f"API test for {module} successful. Response: {response[:50]}...")
+            except Exception as e:
+                print(f"API test for {module} failed. Error: {str(e)}")
+        print("API tests complete.")
+
+    def test_conversation_flow(self):
+        print("Testing conversation flow...")
+        test_inputs = ["Hello, ADA!", "How are you today?", "What's the weather like?"]
+        for input_text in test_inputs:
+            output = self.process_input(input_text)
+            print(f"Test input: {input_text}")
+            print(f"Test output: {output}")
+            print(f"Memory length: {len(self.short_term_memory)}")
+        print("Conversation flow test complete.")
 
     def load_prompts(self) -> Dict[str, str]:
         print("Loading prompts...")
@@ -125,6 +149,8 @@ class ADA:
         self.short_term_memory.append(new_entry)
         if len(self.short_term_memory) > 10:
             self.short_term_memory.pop(0)
+        if self.debug_mode:
+            print(f"Memory updated. Current length: {len(self.short_term_memory)}")
 
     def api_call(self, module: str, input_text: str) -> str:
         url = "https://api.groq.com/v1/process"
