@@ -1,42 +1,63 @@
 import requests
 import json
 
-def test_grok_api():
-    url = "https://api.x.ai/v1/chat/completions"
+# Load API keys from the text file
+def load_api_keys(file_path='apikeys.txt'):
+    api_keys = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            current_module = None
+            for line in file:
+                line = line.strip()
+                if line.startswith('[') and line.endswith(']'):  # Module name
+                    current_module = line[1:-1]
+                elif current_module:
+                    api_keys[current_module] = line
+        print(f"Loaded API keys for modules: {', '.join(api_keys.keys())}")
+    except FileNotFoundError:
+        print("Error: API keys file not found!")
+    except Exception as e:
+        print(f"Error loading API keys: {str(e)}")
+    return api_keys
+
+# Test API call for a specific module
+def test_api_call(module, api_key, prompt="Hello, world!"):
+    url = "https://api.x.ai/v1/chat/completions"  # Adjust if needed
     headers = {
-        "Authorization": "Bearer YOUR_API_KEY_HERE",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "grok-beta",
+        "model": "grok-beta",  # Adjust if a different model is required
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Hello, how are you?"}
+            {"role": "system", "content": f"System prompt for {module}"},
+            {"role": "user", "content": prompt}
         ],
         "max_tokens": 1000,
         "temperature": 0.7
     }
 
-    print("API Call Details:")
-    print(f"  URL: {url}")
-    print(f"  Headers: {headers}")
-    print(f"  Payload: {json.dumps(payload, indent=2)}")
-
+    print(f"\nTesting module: {module}")
     try:
         response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
+        response.raise_for_status()  # Raise error for bad status codes
         json_response = response.json()
-        print("API Response:")
-        print(json.dumps(json_response, indent=2))
-        if 'error' in json_response:
-            print(f"Error from API: {json_response['error']}")
-        elif 'choices' in json_response and len(json_response['choices']) > 0:
-            print("Generated response:")
-            print(json_response['choices'][0]['message']['content'].strip())
-        else:
-            print("Unexpected response format")
+        print(f"Response for {module}: {json.dumps(json_response, indent=2)}")
     except requests.exceptions.RequestException as e:
-        print(f"API call failed: {str(e)}")
+        print(f"API call failed for {module}: {e}")
+    except Exception as e:
+        print(f"Unexpected error for {module}: {e}")
+
+# Main function to test all modules
+def main():
+    api_keys = load_api_keys()  # Load API keys from text file
+
+    if not api_keys:
+        print("No API keys found. Exiting.")
+        return
+
+    for module, api_key in api_keys.items():
+        test_api_call(module, api_key)
 
 if __name__ == "__main__":
-    test_grok_api()
+    main()
