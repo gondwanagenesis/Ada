@@ -32,9 +32,15 @@ class ADA:
         all_apis_working = True
         for module in modules:
             try:
-                response = self.api_call(module, "Test input")
+                test_input = f"Test input for {module}"
+                response = self.api_call(module, test_input)
                 if response and len(response) > 0:
-                    print(f"API test for {module} successful. Response: {response[:50]}...")
+                    print(f"API test for {module} successful.")
+                    print(f"  Input: {test_input}")
+                    print(f"  Response: {response[:100]}...")
+                    if test_input.lower() not in response.lower():
+                        print(f"  WARNING: Response may not reflect the input for {module}")
+                        all_apis_working = False
                 else:
                     print(f"API test for {module} failed. Empty response.")
                     all_apis_working = False
@@ -44,7 +50,7 @@ class ADA:
         if all_apis_working:
             print("All API tests completed successfully.")
         else:
-            print("WARNING: Some API tests failed. Please check your API keys and network connection.")
+            print("WARNING: Some API tests failed or produced unexpected results. Please check your API keys, network connection, and response quality.")
         print("API tests complete.")
 
     def test_conversation_flow(self):
@@ -180,14 +186,17 @@ class ADA:
             print(f"Memory updated. Current length: {len(self.short_term_memory)}")
 
     def api_call(self, module: str, input_text: str) -> str:
-        url = "https://api.groq.com/v1/process"
+        url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_keys[module]}",
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "grok-2-model",
-            "input": f"{self.prompts[module]}\n\nInput: {input_text}"
+            "model": "mixtral-8x7b-32768",
+            "messages": [
+                {"role": "system", "content": self.prompts[module]},
+                {"role": "user", "content": input_text}
+            ]
         }
         try:
             response = requests.post(url, headers=headers, json=payload)
@@ -195,10 +204,8 @@ class ADA:
             json_response = response.json()
             if self.debug_mode:
                 print(f"API Response for {module}: {json_response}")
-            if 'output' in json_response:
-                return json_response['output']
-            elif 'choices' in json_response and len(json_response['choices']) > 0:
-                return json_response['choices'][0]['text']
+            if 'choices' in json_response and len(json_response['choices']) > 0:
+                return json_response['choices'][0]['message']['content']
             else:
                 raise KeyError("Unexpected response format")
         except requests.exceptions.RequestException as e:
