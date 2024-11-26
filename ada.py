@@ -208,13 +208,13 @@ class ADA:
             print(f"Memory updated. Current length: {len(self.short_term_memory)}")
 
     def api_call(self, module: str, input_text: str) -> str:
-        url = "https://api.groq.com/v1/completions"
+        url = "https://api.x.ai/v1/completions"
         headers = {
             "Authorization": f"Bearer {self.api_keys[module]}",
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "grok-2",
+            "model": "grok-beta",
             "prompt": f"{self.prompts[module]}\n\nInput: {input_text}\nOutput:",
             "max_tokens": 1000,
             "temperature": 0.7
