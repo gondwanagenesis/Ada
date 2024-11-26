@@ -222,12 +222,20 @@ class ADA:
             "max_tokens": 1000,
             "temperature": 0.7
         }
+        if self.debug_mode:
+            print("API Call Details:")
+            print(f"  URL: {url}")
+            print(f"  Headers: {headers}")
+            print(f"  Payload: {json.dumps(payload, indent=2)}")
         try:
             response = requests.post(url, headers=headers, json=payload)
-            response.raise_for_status()  # Raise an exception for bad status codes
+            response.raise_for_status()
             json_response = response.json()
             if self.debug_mode:
                 print(f"API Response for {module}: {json_response}")
+            if 'error' in json_response:
+                print(f"Error from API: {json_response['error']}")
+                return f"Error from {module} API: {json_response['error']}"
             if 'choices' in json_response and len(json_response['choices']) > 0:
                 return json_response['choices'][0]['message']['content'].strip()
             else:
