@@ -11,7 +11,7 @@ class ADA:
 
     def load_prompts(self) -> Dict[str, str]:
         prompts = {}
-        with open('prompts.txt', 'r') as file:
+        with open('prompts.txt', 'r', encoding='utf-8') as file:
             current_module = None
             for line in file:
                 if line.strip().startswith('[') and line.strip().endswith(']'):
@@ -23,7 +23,7 @@ class ADA:
 
     def load_api_keys(self) -> Dict[str, str]:
         api_keys = {}
-        with open('apikeys.txt', 'r') as file:
+        with open('apikeys.txt', 'r', encoding='utf-8') as file:
             current_module = None
             for line in file:
                 if line.strip().startswith('[') and line.strip().endswith(']'):
