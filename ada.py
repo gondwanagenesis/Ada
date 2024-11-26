@@ -208,24 +208,15 @@ class ADA:
             print(f"Memory updated. Current length: {len(self.short_term_memory)}")
 
     def api_call(self, module: str, input_text: str) -> str:
-        url = "https://api.x.ai/v1/chat/completions"
+        url = "https://api.groq.com/v1/completions"
         headers = {
             "Authorization": f"Bearer {self.api_keys[module]}",
             "Content-Type": "application/json"
         }
         payload = {
-            "messages": [
-                {
-                    "role": "system",
-                    "content": self.prompts[module]
-                },
-                {
-                    "role": "user",
-                    "content": input_text
-                }
-            ],
-            "model": "grok-beta",
-            "stream": False,
+            "model": "grok-2",
+            "prompt": f"{self.prompts[module]}\n\nInput: {input_text}\nOutput:",
+            "max_tokens": 1000,
             "temperature": 0.7
         }
         try:
@@ -235,7 +226,7 @@ class ADA:
             if self.debug_mode:
                 print(f"API Response for {module}: {json_response}")
             if 'choices' in json_response and len(json_response['choices']) > 0:
-                return json_response['choices'][0]['message']['content'].strip()
+                return json_response['choices'][0]['text'].strip()
             else:
                 raise KeyError("Unexpected response format")
         except requests.exceptions.RequestException as e:
