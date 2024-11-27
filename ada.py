@@ -1,6 +1,7 @@
 import json
 import requests
 import time
+import os
 from typing import List, Dict
 from tqdm import tqdm
 
@@ -17,38 +18,31 @@ class ADA:
             self.test_conversation_flow()
         
     def check_modules(self):
-        print("Checking all modules...")
         modules = ['GW', 'RM', 'CM', 'EC', 'LM']
-        prompts_found = []
-        api_keys_found = []
-        modules_initialized = []
-        errors = []
-
-        for module in modules:
+        for i, module in enumerate(modules):
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(f"Checking module {i+1}/{len(modules)}: {module}")
+            
             if module in self.prompts:
-                prompts_found.append(module)
+                print(f"✓ Prompt for {module} found")
             else:
-                errors.append(f"Prompt for {module} not found!")
+                print(f"✗ Prompt for {module} not found!")
             
             if module in self.api_keys:
-                api_keys_found.append(module)
+                print(f"✓ API key for {module} found")
             else:
-                errors.append(f"API key for {module} not found!")
+                print(f"✗ API key for {module} not found!")
             
             if module in self.prompts and module in self.api_keys:
-                modules_initialized.append(module)
+                print(f"✓ {module} initialized successfully")
+            else:
+                print(f"✗ {module} initialization failed")
+            
+            time.sleep(1)  # Pause for a second to allow reading
 
-        print(f"Prompts found: {', '.join(prompts_found)}")
-        print(f"API keys found: {', '.join(api_keys_found)}")
-        print(f"Modules initialized: {', '.join(modules_initialized)}")
-        
-        if errors:
-            print("Errors:")
-            for error in errors:
-                print(f"- {error}")
-        else:
-            print("All modules checked successfully.")
-        print("Module check complete.")
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("All modules checked.")
+        time.sleep(1)
 
     def test_apis(self):
         print("Testing APIs for all modules...")
