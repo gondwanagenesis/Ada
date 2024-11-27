@@ -173,8 +173,8 @@ class ADA:
             
             # Step 4: Cross-Module Feedback
             step_start = time.time()
-            rm_refined = self.reasoning_module(gw_output + cm_output)
-            cm_refined = self.creative_module(gw_output + rm_output)
+            rm_refined = self.reasoning_module(gw_output + "\n" + cm_output)
+            cm_refined = self.creative_module(gw_output + "\n" + rm_output)
             logging.info(f"Step 4 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[4])
@@ -241,7 +241,7 @@ class ADA:
                 {"role": "system", "content": self.prompts.get(module, "")},
                 {"role": "user", "content": input_text}
             ],
-            "max_tokens": 1000,
+            "max_tokens": 4000,  # Increased max_tokens to reduce truncation
             "temperature": 0.7
         }
 
@@ -253,7 +253,10 @@ class ADA:
             
             # Check and return the content
             if 'choices' in json_response and len(json_response['choices']) > 0:
-                return json_response['choices'][0]['message']['content'].strip()
+                content = json_response['choices'][0]['message']['content'].strip()
+                if self.debug_mode:
+                    print(f"Debug: {module} response:\n{content}\n")
+                return content
             else:
                 print(f"Unexpected response format for {module}: {json_response}")
                 return ""
