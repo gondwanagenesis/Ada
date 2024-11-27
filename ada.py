@@ -1,6 +1,8 @@
 import json
 import requests
+import time
 from typing import List, Dict
+from tqdm import tqdm
 
 class ADA:
     def __init__(self, debug_mode: bool = False):
@@ -138,54 +140,60 @@ class ADA:
         return api_keys
 
     def process_input(self, user_input: str) -> str:
-        if self.debug_mode:
-            print(f"Processing input: {user_input}")
+        steps = [
+            "Short-Term Memory Integration",
+            "Global Workspace Processing",
+            "Broadcast to Cognitive Modules",
+            "Cross-Module Feedback",
+            "Consolidation in Global Workspace",
+            "Executive Control",
+            "Language Module",
+            "Memory Update"
+        ]
         
-        # Step 2: Short-Term Memory Integration
-        formatted_memory = self.format_memory()
-        if self.debug_mode:
-            print(f"Formatted memory: {formatted_memory}")
-        
-        # Step 3: Global Workspace Processing
-        gw_output = self.global_workspace_processing(user_input, formatted_memory)
-        if self.debug_mode:
-            print(f"Global Workspace output: {gw_output}")
-        
-        # Step 4: Broadcast to Cognitive Modules
-        rm_output = self.reasoning_module(gw_output)
-        cm_output = self.creative_module(gw_output)
-        if self.debug_mode:
-            print(f"Reasoning Module output: {rm_output}")
-            print(f"Creative Module output: {cm_output}")
-        
-        # Step 5: Cross-Module Feedback
-        rm_refined = self.reasoning_module(gw_output + cm_output)
-        cm_refined = self.creative_module(gw_output + rm_output)
-        if self.debug_mode:
-            print(f"Refined Reasoning Module output: {rm_refined}")
-            print(f"Refined Creative Module output: {cm_refined}")
-        
-        # Step 6: Consolidation in Global Workspace
-        consolidated_thought = self.global_workspace_processing(
-            user_input, formatted_memory, rm_refined, cm_refined
-        )
-        if self.debug_mode:
-            print(f"Consolidated thought: {consolidated_thought}")
-        
-        # Step 7: Executive Control
-        ec_output = self.executive_control(consolidated_thought)
-        if self.debug_mode:
-            print(f"Executive Control output: {ec_output}")
-        
-        # Step 8: Language Module
-        final_output = self.language_module(user_input, consolidated_thought, ec_output)
-        if self.debug_mode:
-            print(f"Final output: {final_output}")
-        
-        # Step 9: User Output
-        self.update_memory(user_input, final_output)
-        
-        # Step 10: Memory Update (already done in update_memory)
+        with tqdm(total=len(steps), desc="Processing", bar_format="{l_bar}{bar}", ncols=50) as pbar:
+            # Step 1: Short-Term Memory Integration
+            formatted_memory = self.format_memory()
+            pbar.update(1)
+            pbar.set_description(steps[1])
+            
+            # Step 2: Global Workspace Processing
+            gw_output = self.global_workspace_processing(user_input, formatted_memory)
+            pbar.update(1)
+            pbar.set_description(steps[2])
+            
+            # Step 3: Broadcast to Cognitive Modules
+            rm_output = self.reasoning_module(gw_output)
+            cm_output = self.creative_module(gw_output)
+            pbar.update(1)
+            pbar.set_description(steps[3])
+            
+            # Step 4: Cross-Module Feedback
+            rm_refined = self.reasoning_module(gw_output + cm_output)
+            cm_refined = self.creative_module(gw_output + rm_output)
+            pbar.update(1)
+            pbar.set_description(steps[4])
+            
+            # Step 5: Consolidation in Global Workspace
+            consolidated_thought = self.global_workspace_processing(
+                user_input, formatted_memory, rm_refined, cm_refined
+            )
+            pbar.update(1)
+            pbar.set_description(steps[5])
+            
+            # Step 6: Executive Control
+            ec_output = self.executive_control(consolidated_thought)
+            pbar.update(1)
+            pbar.set_description(steps[6])
+            
+            # Step 7: Language Module
+            final_output = self.language_module(user_input, consolidated_thought, ec_output)
+            pbar.update(1)
+            pbar.set_description(steps[7])
+            
+            # Step 8: Memory Update
+            self.update_memory(user_input, final_output)
+            pbar.update(1)
         
         return final_output
 
@@ -274,8 +282,9 @@ def main():
         if user_input.lower() in ['exit', 'quit']:
             break
         
+        print("\nADA is thinking...")
         response = ada.process_input(user_input)
-        print("ADA:", response)
+        print("\nADA:", response)
 
 if __name__ == "__main__":
     main()
