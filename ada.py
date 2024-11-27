@@ -139,36 +139,58 @@ class ADA:
         logging.info("Starting process_input")
         start_time = time.time()
         
-        # Step 1: Short-Term Memory Integration
-        formatted_memory = self.format_memory()
+        steps = [
+            "Short-Term Memory Integration",
+            "Global Workspace Processing",
+            "Reasoning Module",
+            "Creative Module",
+            "Executive Control",
+            "Cross-Module Feedback",
+            "Language Module",
+            "Final Global Workspace Integration",
+            "Memory Update"
+        ]
         
-        # Step 2: Global Workspace Processing
-        gw_output = self.global_workspace_processing(user_input, formatted_memory)
-        
-        # Step 3: Reasoning Module
-        rm_output = self.reasoning_module(user_input)
-        
-        # Step 4: Creative Module
-        cm_output = self.creative_module(user_input)
-        
-        # Step 5: Executive Control
-        ec_output = self.executive_control(user_input)
-        
-        # Step 6: Cross-Module Feedback
-        consolidated_thought = self.global_workspace_processing(
-            user_input, formatted_memory, gw_output, rm_output, cm_output, ec_output
-        )
-        
-        # Step 7: Language Module
-        lm_output = self.language_module(user_input, consolidated_thought, ec_output)
-        
-        # Step 8: Final Global Workspace Integration
-        final_output = self.global_workspace_processing(
-            user_input, formatted_memory, gw_output, rm_output, cm_output, ec_output, lm_output
-        )
-        
-        # Step 9: Memory Update
-        self.update_memory(user_input, final_output)
+        with tqdm(total=len(steps), desc="Processing", unit="step") as pbar:
+            # Step 1: Short-Term Memory Integration
+            formatted_memory = self.format_memory()
+            pbar.update(1)
+            
+            # Step 2: Global Workspace Processing
+            gw_output = self.global_workspace_processing(user_input, formatted_memory)
+            pbar.update(1)
+            
+            # Step 3: Reasoning Module
+            rm_output = self.reasoning_module(user_input)
+            pbar.update(1)
+            
+            # Step 4: Creative Module
+            cm_output = self.creative_module(user_input)
+            pbar.update(1)
+            
+            # Step 5: Executive Control
+            ec_output = self.executive_control(user_input)
+            pbar.update(1)
+            
+            # Step 6: Cross-Module Feedback
+            consolidated_thought = self.global_workspace_processing(
+                user_input, formatted_memory, gw_output, rm_output, cm_output, ec_output
+            )
+            pbar.update(1)
+            
+            # Step 7: Language Module
+            lm_output = self.language_module(user_input, consolidated_thought, ec_output)
+            pbar.update(1)
+            
+            # Step 8: Final Global Workspace Integration
+            final_output = self.global_workspace_processing(
+                user_input, formatted_memory, gw_output, rm_output, cm_output, ec_output, lm_output
+            )
+            pbar.update(1)
+            
+            # Step 9: Memory Update
+            self.update_memory(user_input, final_output)
+            pbar.update(1)
         
         total_time = time.time() - start_time
         logging.info(f"Total processing time: {total_time:.2f} seconds")
