@@ -42,7 +42,6 @@ class ADA:
             
             time.sleep(1)  # Pause for a second to allow reading
 
-        os.system('cls' if os.name == 'nt' else 'clear')
         print("All modules checked.")
         time.sleep(1)
 
