@@ -142,26 +142,32 @@ class ADA:
         # Step 1: Short-Term Memory Integration
         formatted_memory = self.format_memory()
         
-        # Step 2-7: Parallel processing of all modules
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            future_gw = executor.submit(self.global_workspace_processing, user_input, formatted_memory)
-            future_rm = executor.submit(self.reasoning_module, user_input)
-            future_cm = executor.submit(self.creative_module, user_input)
-            future_ec = executor.submit(self.executive_control, user_input)
-            future_lm = executor.submit(self.language_module, user_input, "", "")
-            
-            gw_output = future_gw.result()
-            rm_output = future_rm.result()
-            cm_output = future_cm.result()
-            ec_output = future_ec.result()
-            lm_output = future_lm.result()
+        # Step 2: Global Workspace Processing
+        gw_output = self.global_workspace_processing(user_input, formatted_memory)
         
-        # Final consolidation
+        # Step 3: Reasoning Module
+        rm_output = self.reasoning_module(user_input)
+        
+        # Step 4: Creative Module
+        cm_output = self.creative_module(user_input)
+        
+        # Step 5: Executive Control
+        ec_output = self.executive_control(user_input)
+        
+        # Step 6: Cross-Module Feedback
+        consolidated_thought = self.global_workspace_processing(
+            user_input, formatted_memory, gw_output, rm_output, cm_output, ec_output
+        )
+        
+        # Step 7: Language Module
+        lm_output = self.language_module(user_input, consolidated_thought, ec_output)
+        
+        # Step 8: Final Global Workspace Integration
         final_output = self.global_workspace_processing(
             user_input, formatted_memory, gw_output, rm_output, cm_output, ec_output, lm_output
         )
         
-        # Step 8: Memory Update
+        # Step 9: Memory Update
         self.update_memory(user_input, final_output)
         
         total_time = time.time() - start_time
