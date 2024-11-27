@@ -4,6 +4,7 @@ import time
 import os
 from typing import List, Dict
 from tqdm import tqdm
+import logging
 
 class ADA:
     def __init__(self, debug_mode: bool = False):
@@ -134,6 +135,8 @@ class ADA:
         return api_keys
 
     def process_input(self, user_input: str) -> str:
+        logging.info("Starting process_input")
+        start_time = time.time()
         steps = [
             "Short-Term Memory Integration",
             "Global Workspace Processing",
@@ -147,48 +150,66 @@ class ADA:
         
         with tqdm(total=len(steps), desc="Processing", bar_format="{l_bar}{bar}", ncols=50) as pbar:
             # Step 1: Short-Term Memory Integration
+            step_start = time.time()
             formatted_memory = self.format_memory()
+            logging.info(f"Step 1 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[1])
             
             # Step 2: Global Workspace Processing
+            step_start = time.time()
             gw_output = self.global_workspace_processing(user_input, formatted_memory)
+            logging.info(f"Step 2 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[2])
             
             # Step 3: Broadcast to Cognitive Modules
+            step_start = time.time()
             rm_output = self.reasoning_module(gw_output)
             cm_output = self.creative_module(gw_output)
+            logging.info(f"Step 3 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[3])
             
             # Step 4: Cross-Module Feedback
+            step_start = time.time()
             rm_refined = self.reasoning_module(gw_output + cm_output)
             cm_refined = self.creative_module(gw_output + rm_output)
+            logging.info(f"Step 4 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[4])
             
             # Step 5: Consolidation in Global Workspace
+            step_start = time.time()
             consolidated_thought = self.global_workspace_processing(
                 user_input, formatted_memory, rm_refined, cm_refined
             )
+            logging.info(f"Step 5 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[5])
             
             # Step 6: Executive Control
+            step_start = time.time()
             ec_output = self.executive_control(consolidated_thought)
+            logging.info(f"Step 6 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[6])
             
             # Step 7: Language Module
+            step_start = time.time()
             final_output = self.language_module(user_input, consolidated_thought, ec_output)
+            logging.info(f"Step 7 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
             pbar.set_description(steps[7])
             
             # Step 8: Memory Update
+            step_start = time.time()
             self.update_memory(user_input, final_output)
+            logging.info(f"Step 8 took {time.time() - step_start:.2f} seconds")
             pbar.update(1)
         
+        total_time = time.time() - start_time
+        logging.info(f"Total processing time: {total_time:.2f} seconds")
         return final_output
 
     def format_memory(self) -> str:
@@ -269,6 +290,10 @@ class ADA:
 def main():
     print("Welcome to ADA - Sentient Thought Simulation Framework")
     debug_mode = input("Enable debug mode? (y/n): ").lower() == 'y'
+    
+    logging.basicConfig(filename='ada_performance.log', level=logging.INFO, 
+                        format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    
     ada = ADA(debug_mode)
     
     while True:
