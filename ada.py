@@ -14,7 +14,7 @@ class ADA:
         print("Initializing ADA...")
         self.prompts = self.load_prompts()
         self.api_keys = self.load_api_keys()
-        self.check_modules()
+        self.session = requests.Session()
         if self.debug_mode:
             self.test_apis()
             self.test_conversation_flow()
@@ -138,77 +138,31 @@ class ADA:
     def process_input(self, user_input: str) -> str:
         logging.info("Starting process_input")
         start_time = time.time()
-        steps = [
-            "Short-Term Memory Integration",
-            "Global Workspace Processing",
-            "Broadcast to Cognitive Modules",
-            "Cross-Module Feedback",
-            "Consolidation in Global Workspace",
-            "Executive Control",
-            "Language Module",
-            "Memory Update"
-        ]
         
-        with tqdm(total=len(steps), desc="Processing", bar_format="{l_bar}{bar}", ncols=50) as pbar:
-            # Step 1: Short-Term Memory Integration
-            step_start = time.time()
-            formatted_memory = self.format_memory()
-            logging.info(f"Step 1 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
-            pbar.set_description(steps[1])
+        # Step 1: Short-Term Memory Integration
+        formatted_memory = self.format_memory()
+        
+        # Step 2-7: Parallel processing of all modules
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future_gw = executor.submit(self.global_workspace_processing, user_input, formatted_memory)
+            future_rm = executor.submit(self.reasoning_module, user_input)
+            future_cm = executor.submit(self.creative_module, user_input)
+            future_ec = executor.submit(self.executive_control, user_input)
+            future_lm = executor.submit(self.language_module, user_input, "", "")
             
-            # Step 2: Global Workspace Processing
-            step_start = time.time()
-            gw_output = self.global_workspace_processing(user_input, formatted_memory)
-            logging.info(f"Step 2 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
-            pbar.set_description(steps[2])
-            
-            # Step 3 & 4: Broadcast to Cognitive Modules and Cross-Module Feedback (Parallel)
-            step_start = time.time()
-            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                future_rm = executor.submit(self.reasoning_module, gw_output)
-                future_cm = executor.submit(self.creative_module, gw_output)
-                rm_output = future_rm.result()
-                cm_output = future_cm.result()
-                
-                future_rm_refined = executor.submit(self.reasoning_module, gw_output + "\n" + cm_output)
-                future_cm_refined = executor.submit(self.creative_module, gw_output + "\n" + rm_output)
-                rm_refined = future_rm_refined.result()
-                cm_refined = future_cm_refined.result()
-            
-            logging.info(f"Steps 3 & 4 took {time.time() - step_start:.2f} seconds")
-            pbar.update(2)
-            pbar.set_description(steps[4])
-            
-            # Step 5: Consolidation in Global Workspace
-            step_start = time.time()
-            consolidated_thought = self.global_workspace_processing(
-                user_input, formatted_memory, rm_refined, cm_refined
-            )
-            logging.info(f"Step 5 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
-            pbar.set_description(steps[5])
-            
-            # Step 6: Executive Control
-            step_start = time.time()
-            ec_output = self.executive_control(consolidated_thought)
-            logging.info(f"Step 6 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
-            pbar.set_description(steps[6])
-            
-            # Step 7: Language Module
-            step_start = time.time()
-            final_output = self.language_module(user_input, consolidated_thought, ec_output)
-            logging.info(f"Step 7 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
-            pbar.set_description(steps[7])
-            
-            # Step 8: Memory Update
-            step_start = time.time()
-            self.update_memory(user_input, final_output)
-            logging.info(f"Step 8 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
+            gw_output = future_gw.result()
+            rm_output = future_rm.result()
+            cm_output = future_cm.result()
+            ec_output = future_ec.result()
+            lm_output = future_lm.result()
+        
+        # Final consolidation
+        final_output = self.global_workspace_processing(
+            user_input, formatted_memory, gw_output, rm_output, cm_output, ec_output, lm_output
+        )
+        
+        # Step 8: Memory Update
+        self.update_memory(user_input, final_output)
         
         total_time = time.time() - start_time
         logging.info(f"Total processing time: {total_time:.2f} seconds")
@@ -247,7 +201,7 @@ class ADA:
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                response = requests.post(url, headers=headers, json=payload, timeout=30)
+                response = self.session.post(url, headers=headers, json=payload, timeout=30)
                 response.raise_for_status()
                 json_response = response.json()
                 
