@@ -5,6 +5,7 @@ import os
 from typing import List, Dict
 from tqdm import tqdm
 import logging
+import concurrent.futures
 
 class ADA:
     def __init__(self, debug_mode: bool = False):
@@ -163,20 +164,21 @@ class ADA:
             pbar.update(1)
             pbar.set_description(steps[2])
             
-            # Step 3: Broadcast to Cognitive Modules
+            # Step 3 & 4: Broadcast to Cognitive Modules and Cross-Module Feedback (Parallel)
             step_start = time.time()
-            rm_output = self.reasoning_module(gw_output)
-            cm_output = self.creative_module(gw_output)
-            logging.info(f"Step 3 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
-            pbar.set_description(steps[3])
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+                future_rm = executor.submit(self.reasoning_module, gw_output)
+                future_cm = executor.submit(self.creative_module, gw_output)
+                rm_output = future_rm.result()
+                cm_output = future_cm.result()
+                
+                future_rm_refined = executor.submit(self.reasoning_module, gw_output + "\n" + cm_output)
+                future_cm_refined = executor.submit(self.creative_module, gw_output + "\n" + rm_output)
+                rm_refined = future_rm_refined.result()
+                cm_refined = future_cm_refined.result()
             
-            # Step 4: Cross-Module Feedback
-            step_start = time.time()
-            rm_refined = self.reasoning_module(gw_output + "\n" + cm_output)
-            cm_refined = self.creative_module(gw_output + "\n" + rm_output)
-            logging.info(f"Step 4 took {time.time() - step_start:.2f} seconds")
-            pbar.update(1)
+            logging.info(f"Steps 3 & 4 took {time.time() - step_start:.2f} seconds")
+            pbar.update(2)
             pbar.set_description(steps[4])
             
             # Step 5: Consolidation in Global Workspace
@@ -227,43 +229,43 @@ class ADA:
             print(f"Memory updated. Current length: {len(self.short_term_memory)}")
 
     def api_call(self, module: str, input_text: str) -> str:
-        # Define the endpoint and headers
         url = "https://api.x.ai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_keys[module]}",
             "Content-Type": "application/json"
         }
-        
-        # Prepare the payload
         payload = {
             "model": "grok-beta",
             "messages": [
                 {"role": "system", "content": self.prompts.get(module, "")},
                 {"role": "user", "content": input_text}
             ],
-            "max_tokens": 4000,  # Increased max_tokens to reduce truncation
+            "max_tokens": 4000,
             "temperature": 0.7
         }
 
-        # Make the request
-        try:
-            response = requests.post(url, headers=headers, json=payload)
-            response.raise_for_status()  # Raise HTTPError for bad status
-            json_response = response.json()
-            
-            # Check and return the content
-            if 'choices' in json_response and len(json_response['choices']) > 0:
-                content = json_response['choices'][0]['message']['content'].strip()
-                if self.debug_mode:
-                    print(f"Debug: {module} response:\n{content}\n")
-                return content
-            else:
-                print(f"Unexpected response format for {module}: {json_response}")
-                return ""
-        except requests.exceptions.RequestException as e:
-            print(f"API call failed for {module}: {str(e)}")
-            print(f"Response content: {response.content if 'response' in locals() else 'No response received'}")
-            return f"Error in {module} API call: {str(e)}"
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(url, headers=headers, json=payload, timeout=30)
+                response.raise_for_status()
+                json_response = response.json()
+                
+                if 'choices' in json_response and len(json_response['choices']) > 0:
+                    content = json_response['choices'][0]['message']['content'].strip()
+                    if self.debug_mode:
+                        print(f"Debug: {module} response:\n{content}\n")
+                    return content
+                else:
+                    raise ValueError(f"Unexpected response format for {module}: {json_response}")
+            except (requests.exceptions.RequestException, ValueError) as e:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff
+                    print(f"API call failed for {module}. Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"API call failed for {module} after {max_retries} attempts: {str(e)}")
+                    return f"Error in {module} API call: {str(e)}"
 
     def global_workspace_processing(self, user_input: str, formatted_memory: str, *args) -> str:
         input_text = f"{formatted_memory}\nCurrent Input: {user_input}\n" + "\n".join(args)
