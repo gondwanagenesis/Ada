@@ -317,6 +317,12 @@ class ADAAsync:
             json.dump(thought_process, json_file, ensure_ascii=False)
             json_file.write("\n")
 
+    def process_input_async(self, user_input: str) -> str:
+        # ... (existing code)
+        
+        # At the end of the method, return only the LM module's output
+        return thought_process['final_output']  # This ensures only LM's output is returned
+
     def clean_module_output(self, output: str) -> str:
         """
         Cleans the module output by removing any prompts, system messages, or disallowed content.
