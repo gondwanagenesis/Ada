@@ -1,6 +1,6 @@
 ### **Program Overview**
 
-We are creating a program named ADA in python, designed to become a
+We are creating a program named ADA, designed to become a
 sentient AI by implementing the Theory of the GLOBAL WORKSPACE. ADA\'s
 architecture is based on the **Global Workspace Theory of
 Consciousness** and operates through the interaction of **five cognitive
@@ -140,7 +140,8 @@ the user.
     that we can see into the brain and make sure everything is running
     well.
 
--   All of this thought is done through GroqAPI. The five separate API
+-   **API KEYS**
+    All of this thought is done through GroqAPI. The five separate API
     keys are needed, comma, one for each module. These are stored in a
     separate file called apikeys. This text file simply has each
     module\'s designation in brackets followed by the apikey for that.
