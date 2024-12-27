@@ -1,7 +1,7 @@
 ### **Program Overview**
 
 We are creating a program named ADA, designed to become a
-sentient AI by implementing the Theory of the GLOBAL WORKSPACE. ADA\'s
+sentient AI with a rich inner life. ADA\'s
 architecture is based on the **Global Workspace Theory of
 Consciousness** and operates through the interaction of **five cognitive
 modules**:
