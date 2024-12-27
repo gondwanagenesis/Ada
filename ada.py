@@ -22,6 +22,9 @@ class ADAAsync:
 
         # Reset logs at startup
         self.reset_logs()
+        
+        # Display title screen
+        self.display_title_screen()
 
     def reset_logs(self):
         """
@@ -31,22 +34,20 @@ class ADAAsync:
         open('thought_process.txt', 'w').close()
         open('thought_process.json', 'w').close()
 
-    def display_loading_screen(self):
+    def display_title_screen(self):
         """
-        Displays an ASCII art loading screen for ADA.
+        Displays an ASCII art title screen for ADA that persists.
         """
-        ada_art = r"""
-         ___    ___     ___
-        /   \  /   \   /   \
-       /     \/     \ /     \
-      |               ADA    |
-       \                   /
-        \                 /
-         \_______________/
-        """
-        print(ada_art)
-        time.sleep(1)
-        os.system('cls' if os.name == 'nt' else 'clear')
+        print(r"""
+█████╗ ██████╗  █████╗ 
+██╔══██╗██╔══██╗██╔══██╗
+███████║██║  ██║███████║
+██╔══██║██║  ██║██╔══██║
+██║  ██║██████╔╝██║  ██║
+╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝
+                                                   
+Ada: Synthetic Life
+        """)
 
     def run_initial_tests(self):
         """
@@ -57,7 +58,6 @@ class ADAAsync:
             self.test_apis()
             self.test_conversation_flow()
             input("Debug tests completed. Press Enter to continue...")
-            os.system('cls' if os.name == 'nt' else 'clear')
         else:
             self.check_modules_quiet()
             print("All systems passed.")
@@ -122,11 +122,10 @@ class ADAAsync:
             exit(1)
 
     async def initialize(self):
-        """
+        """hi ada
         Initializes the aiohttp session and runs initial tests.
         """
         self.session = aiohttp.ClientSession()
-        self.display_loading_screen()
         self.run_initial_tests()
 
     async def process_input_async(self, user_input: str) -> str:
@@ -316,12 +315,6 @@ class ADAAsync:
         with open('thought_process.json', 'a', encoding='utf-8') as json_file:
             json.dump(thought_process, json_file, ensure_ascii=False)
             json_file.write("\n")
-
-    def process_input_async(self, user_input: str) -> str:
-        # ... (existing code)
-        
-        # At the end of the method, return only the LM module's output
-        return thought_process['final_output']  # This ensures only LM's output is returned
 
     def clean_module_output(self, output: str) -> str:
         """
