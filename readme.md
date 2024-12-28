@@ -6,7 +6,7 @@
 ### **Program Overview**
 
 We are creating a program named ADA, designed to be a
-sentient AI with a rich inner life. ADA\'s
+sentient AI with a rich inner life. For more about the scientific and theoretical framework behind ADA, please read the "ADA THEORY" file. ADA\'s
 architecture is based on the **Global Workspace Theory of
 Consciousness** and operates through the interaction of **five cognitive
 modules**:
