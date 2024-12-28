@@ -174,24 +174,30 @@ Ada: Synthetic Life
         step_times['RM and CM Second Pass'] = time.time() - start_time
         pbar.update(1)
 
-        # Step 5: Executive Control
-        pbar.set_description("Processing: Executive Control")
-        start_time = time.time()
-        ec_output = self.clean_module_output(await self.api_call_async('EC', f"Reasoning Module Output:\n{rm_output}\n\nCreative Module Output:\n{cm_output}"))
-        step_times['Executive Control'] = time.time() - start_time
-        pbar.update(1)
-
-        # Step 6: Consolidation in Global Workspace
+        # Step 5: Consolidation in Global Workspace
         pbar.set_description("Processing: Consolidation")
         start_time = time.time()
-        consolidated_thought = self.clean_module_output(await self.api_call_async('GW', f"Global Workspace Output:\n{gw_output}\n\nReasoning Module Output:\n{rm_output}\n\nCreative Module Output:\n{cm_output}\n\nExecutive Control Output:\n{ec_output}"))
+        consolidated_thought = self.clean_module_output(
+            await self.api_call_async('GW', f"Global Workspace Output:\n{gw_output}\n\nReasoning Module Output:\n{rm_output}\n\nCreative Module Output:\n{cm_output}")
+        )
         step_times['Consolidation'] = time.time() - start_time
+        pbar.update(1)
+
+        # Step 6: Executive Control
+        pbar.set_description("Processing: Executive Control")
+        start_time = time.time()
+        ec_output = self.clean_module_output(
+            await self.api_call_async('EC', f"Consolidated Thought:\n{consolidated_thought}")
+        )
+        step_times['Executive Control'] = time.time() - start_time
         pbar.update(1)
 
         # Step 7: Language Module
         pbar.set_description("Processing: Language Module")
         start_time = time.time()
-        lm_output = self.clean_module_output(await self.api_call_async('LM', f"User Input:\n{user_input}\n\nConsolidated Thought:\n{consolidated_thought}\n\nAs the Language Module, generate a direct and natural response to the user without including any internal thoughts or module outputs."))
+        lm_output = self.clean_module_output(
+            await self.api_call_async('LM', f"User Input:\n{user_input}\n\nExecutive Control Output:\n{ec_output}\n\nAs the Language Module, generate a direct and natural response to the user without including any internal thoughts or module outputs.")
+        )
         step_times['Language Module'] = time.time() - start_time
         pbar.update(1)
 
@@ -266,7 +272,7 @@ Ada: Synthetic Life
                 {"role": "system", "content": self.prompts.get(module, "")},
                 {"role": "user", "content": input_text}
             ],
-            "max_tokens": 150,  # Reduced for faster responses
+            "max_tokens": 700,  # Reduced for faster responses
             "temperature": 0.7,
             "stop": ["[", "]", "You are", "Your role is"]
         }
@@ -298,18 +304,64 @@ Ada: Synthetic Life
 
     def log_thought_process(self, thought_process: Dict):
         """
-        Logs the thought process to text and JSON files for debugging and analysis.
+        Logs each step in order with clear labels for input and output, reflecting the actual flow of thought.
         """
-        # Human-readable log
         with open('thought_process.txt', 'a', encoding='utf-8') as txt_file:
-            txt_file.write(f"Thought Process at {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-            for key, value in thought_process.items():
-                if isinstance(value, dict) and 'input' in value and 'output' in value:
-                    txt_file.write(f"{key} Input:\n{value['input']}\n")
-                    txt_file.write(f"{key} Output:\n{value['output']}\n\n")
-                else:
-                    txt_file.write(f"{key}:\n{value}\n\n")
-            txt_file.write("=" * 50 + "\n\n")
+            txt_file.write(f"=== Thought Process at {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n\n")
+
+            # Step 1: Global Workspace
+            txt_file.write("=== Module: GW ===\n")
+            txt_file.write("Input:\n")
+            txt_file.write(thought_process['gw_output']['input'] + "\n\n")
+            txt_file.write("Output:\n")
+            txt_file.write(thought_process['gw_output']['output'] + "\n\n")
+            txt_file.write("==============================\n\n")
+
+            # Step 2: Reasoning Module
+            txt_file.write("=== Module: RM ===\n")
+            txt_file.write("Input:\n")
+            txt_file.write(thought_process['rm_output']['input'] + "\n\n")
+            txt_file.write("Output:\n")
+            txt_file.write(thought_process['rm_output']['output'] + "\n\n")
+            txt_file.write("==============================\n\n")
+
+            # Step 3: Creative Module
+            txt_file.write("=== Module: CM ===\n")
+            txt_file.write("Input:\n")
+            txt_file.write(thought_process['cm_output']['input'] + "\n\n")
+            txt_file.write("Output:\n")
+            txt_file.write(thought_process['cm_output']['output'] + "\n\n")
+            txt_file.write("==============================\n\n")
+
+            # Step 4: Consolidation
+            txt_file.write("=== Module: CONSOLIDATION ===\n")
+            txt_file.write("Input:\n")
+            txt_file.write(thought_process['consolidated_thought']['input'] + "\n\n")
+            txt_file.write("Output:\n")
+            txt_file.write(thought_process['consolidated_thought']['output'] + "\n\n")
+            txt_file.write("==============================\n\n")
+
+            # Step 5: Executive Control
+            txt_file.write("=== Module: EC ===\n")
+            txt_file.write("Input:\n")
+            txt_file.write(thought_process['ec_output']['input'] + "\n\n")
+            txt_file.write("Output:\n")
+            txt_file.write(thought_process['ec_output']['output'] + "\n\n")
+            txt_file.write("==============================\n\n")
+
+            # Step 6: Language Module
+            txt_file.write("=== Module: LM ===\n")
+            txt_file.write("Input:\n")
+            txt_file.write(thought_process['lm_output']['input'] + "\n\n")
+            txt_file.write("Output:\n")
+            txt_file.write(thought_process['lm_output']['output'] + "\n\n")
+            txt_file.write("==============================\n\n")
+
+            # Final Output
+            txt_file.write("=== Final Output ===\n")
+            txt_file.write(thought_process.get('final_output', '') + "\n")
+            txt_file.write("==================================================\n\n")
+
 
         # JSON log
         with open('thought_process.json', 'a', encoding='utf-8') as json_file:
