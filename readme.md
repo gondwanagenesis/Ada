@@ -63,84 +63,79 @@ below. Each step involves specific interactions between the modules,
 using their unique roles to collaboratively produce a final output for
 the user.
 
-#### **1. User Input**
+                             ┌────────────────────────────────────────────────┐
+                             │               1. USER INPUT                   │
+                             │        The user input is received as A        │
+                             └────────────────────────────────────────────────┘
+                                              │
+                                              ▼
+                             ┌────────────────────────────────────────────────┐
+                             │     2. GLOBAL WORKSPACE PROCESSING (GW)        │
+                             │   GW: Receives A → Generates initial B         │
+                             │   Combined (A + B) = AB                        │
+                             └────────────────────────────────────────────────┘
+                                    │                     │
+                                    │                     │
+                                 (AB)                   (AB)
+                                    │                     │
+                                    ▼                     ▼
+                    ┌─────────────────────────────┐   ┌─────────────────────────────┐
+                    │  Reasoning Module (RM)      │   │  Creative Module (CM)       │
+                    │  Input: AB → Output: C      │   │  Input: AB → Output: D      │
+                    └─────────────────────────────┘   └─────────────────────────────┘
+                                               \          / 
+                                                 \      /  
+                                                   \  / 
+                                                     X
+                                                   /  \               
+                                                  ▼    ▼            
+                    ┌─────────────────────────────┐   ┌─────────────────────────────┐
+                    │  Reasoning Module (RM)      │   │  Creative Module (CM)       │
+                    │ RM receives ABD → outputs E │   │ CM receives ABC → outputs F │
+                    └─────────────────────────────┘   └─────────────────────────────┘
+                                         │                     │
+                                      (ABDE)                  (ABCF)
+                                         │                     │
+                                         ▼                     ▼
 
--   The user input is received and represented as **A**.
+                             ┌────────────────────────────────────────────────┐
+                             │    4. CONSOLIDATION IN GLOBAL WORKSPACE        │
+                             │   GW: Receives AB+DE+CF → (ABDECF)             │
+                             │   Generates G                                  │
+                             └────────────────────────────────────────────────┘
+                                              │
+                                              ▼
+                             ┌────────────────────────────────────────────────┐
+                             │         5. EXECUTIVE CONTROL (EC)              │
+                             │   Receives G → Generates H                     │
+                             └────────────────────────────────────────────────┘
+                                              │
+                                              ▼
+                             ┌────────────────────────────────────────────────┐
+                             │           6. LANGUAGE MODULE (LM)              │
+                             │  Receives A and GH → Produces final Response I │
+                             └────────────────────────────────────────────────┘
+                                              │
+                                              ▼
+                             ┌────────────────────────────────────────────────┐
+                             │               7. USER OUTPUT                   │
+                             │      Final response I sent to user             │
+                             └────────────────────────────────────────────────┘
 
-#### **2. Global Workspace Processing**
 
--   The input (**A**) is sent to the **Global Workspace (GW)**, which
-    reflects on it and generates an initial thought: **B**.
+DATA STORAGE AND TRAINING
+─────────────────────────────────────────────────────────────────────────
+**1) THOUGHT PROCESS LOGGING**
+   - The entire chain (A, B, C, E, D, F, G, H, I) is saved to a text file.
+   - This file shows each module’s input and output explicitly.
 
--   The combined response (**AB**) is then **broadcasted**
-    simultaneously to:
+**2) JSON FORMAT FOR MODULAR TRAINING**
+   - The text file is converted into JSON.
+   - Each module’s inputs and outputs are organized for targeted training.
 
-    -   **Reasoning Module (RM)**: Generates **C**.
-
-    -   **Creative Module (CM)**: Generates **D**.
-
-#### **3. Cross-Module Feedback**
-
--   **Reasoning Module (RM)** receives **ABD** and produces **E**.
-
--   **Creative Module (CM)** receives **ABC** and produces **F**.
-
-#### **4. Consolidation in Global Workspace**
-
--   The responses **C** and **E** (from RM) and **D** and **F**
-    (from CM) are sent back to the **Global Workspace (GW)**.
-
--   The Global Workspace now processes everything it has received:
-    **ABCEDF**.
-
--   It generates a new response: **G**.
-
-#### **5. Executive Control**
-
--   The response **G** is sent to the **Executive Control (EC)** module,
-    which processes it and generates a new response: **H**.
-
-#### **6. Language Module**
-
--   The final combination of **A** and **GH** is sent to the **Language
-    Module (LM)**.
-
--   The Language Module generates the final output: **I**.
-
-#### **7. User Output**
-
--   The final response, **I**, is sent back to the user.
-
--   This is the **only output** visible to the user.
-
-### **Data Storage and Training**
-
-1.  **Thought Process Logging**
-
-    -   The complete sequence of the thought process (**A, B, C, E, D,
-        F, G, H, I**) is saved to a **text file**.
-
-    -   The file is formatted to capture each module\'s input and output
-        explicitly, facilitating:
-
-        -   Training individual modules on their history of inputs and
-            outputs
-
-        -   Analyzing the behavior of each module in isolation.
-
-2.  **JSON Format for Modular Training**
-
-    -   The text file is converted into a **JSON format**. Each
-        module\'s inputs and outputs are organized to allow targeted
-        training based on specific examples.
-
-3.  **Vector Database for Memory**
-
-    -   The JSON data is stored in a **vector database** using
-        **Retrieval-Augmented Generation (RAG)**.
-
-    -   This allows modules to reference prior thought processes for
-        enhanced memory and continuity.
+**3) VECTOR DATABASE FOR MEMORY**
+   - The JSON data is stored in a vector DB (RAG setup).
+   - Modules reference prior thought processes for enhanced continuity.
 
 ### **Module-Specific Prompts**
 
@@ -157,7 +152,7 @@ the user.
     to the input.
 
 -   Once the module generates a response, the prompt is **removed**,
-    leaving only the response.
+    leaving only the response in  the memory.
 
 -   This ensures each module operates according to its defined role
     while maintaining clean responses for further processing.
