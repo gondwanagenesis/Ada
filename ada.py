@@ -46,7 +46,7 @@ class ADAAsync:
 ██║  ██║██████╔╝██║  ██║
 ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝
                                                    
-Ada: Synthetic Life
+Ada: Synthetic Sapience
         """)
 
     def run_initial_tests(self):
@@ -255,28 +255,38 @@ Ada: Synthetic Life
         if self.debug_mode:
             print(f"Memory updated. Current memory size: {len(self.short_term_memory)}")
 
-    async def api_call_async(self, module: str, input_text: str) -> str:
+    async def api_call_async(self, module: str, input_text: str, api_key_override: str = None) -> str:
         """
         Asynchronous API call to the specified module with the given input text.
         Handles retries and exceptions for robustness.
         """
         start_time = time.time()
-        url = "https://api.x.ai/v1/chat/completions"
+
+        # Select API key: Default to API1, override if specified
+        api_key = api_key_override if api_key_override else self.api_keys.get('API1')
+
+        # Set API endpoint and headers
+        url = "https://api.cerebras.ai/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {self.api_keys.get(module, '')}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
+
+        # Payload for Cerebras model
         payload = {
-            "model": "grok-beta",
+            "model": "llama3.1-70b",  # Cerebras model
             "messages": [
                 {"role": "system", "content": self.prompts.get(module, "")},
                 {"role": "user", "content": input_text}
             ],
-            "max_tokens": 700,  # Reduced for faster responses
+            "max_tokens": 700,
             "temperature": 0.7,
-            "stop": ["[", "]", "You are", "Your role is"]
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0
         }
 
+        # Retry mechanism
         max_retries = 3
         for attempt in range(max_retries):
             try:
