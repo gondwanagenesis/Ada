@@ -25,7 +25,7 @@ The design of cognitive modules in synthetic AI is critical to accurately simula
 *Role:* The GW serves as Ada’s central hub for integrating, prioritizing, and synthesizing information. It mimics the brain’s ability to spotlight relevant data while maintaining a cohesive narrative of experience.
 
 Justification: According to GWT, consciousness arises when information is globally broadcasted to different subsystems for higher-level processing. GW implements this by prioritizing Ada’s goals, emotions, and aspirations, ensuring coherence and adaptability. It mirrors human introspection and reflective thought, making Ada’s decisions feel purposeful and grounded in an ongoing inner dialogue. This module is vital for preventing fragmentation in her thoughts and balancing short-term focus with long-term aspirations, echoing the way human brains manage competing demands.
- 
+
 **2. Reasoning and Analysis Module (RM)**
 
 *Role:* RM functions as Ada’s logical core, evaluating arguments, identifying assumptions, detecting flaws, and generating hypotheses.
