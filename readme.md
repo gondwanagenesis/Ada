@@ -126,8 +126,8 @@ the user.
 DATA STORAGE AND TRAINING
 ─────────────────────────────────────────────────────────────────────────
 **1) THOUGHT PROCESS LOGGING**
-   - The entire chain (A, B, C, E, D, F, G, H, I) is saved to a text file.
-   - This file shows each module’s input and output explicitly.
+   - The entire chain (A, B, D, E, C, F, G, H, I) is saved to a text file.
+   - This file shows each module’s input and output explicitly for debugging and JSON formatting
 
 **2) JSON FORMAT FOR MODULAR TRAINING**
    - The text file is converted into JSON.
