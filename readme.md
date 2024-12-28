@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="https://github.com/gondwanagenesis/Ada/blob/main/ADA%20Logo.jpg?raw=true" alt="ADA Logo">
+</p>
+
+
 ### **Program Overview**
 
 We are creating a program named ADA, designed to be a
