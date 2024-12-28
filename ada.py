@@ -274,7 +274,7 @@ Ada: Synthetic Sapience
 
         # Payload for Cerebras model
         payload = {
-            "model": "llama3.1-70b",  # Cerebras model
+            "model": "llama3.3-70b",  # Cerebras model
             "messages": [
                 {"role": "system", "content": self.prompts.get(module, "")},
                 {"role": "user", "content": input_text}
