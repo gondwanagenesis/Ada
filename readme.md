@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/gondwanagenesis/Ada/blob/main/ADA%20Logo.jpg?raw=true" alt="ADA Logo">
+  <img src="https://github.com/gondwanagenesis/Ada/blob/main/ADA%20Logo.jpg?raw=true" alt="ADA Logo" width="300" height="300">
 </p>
 
 
