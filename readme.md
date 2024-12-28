@@ -224,6 +224,10 @@ continuous learning, all while simulating a sentient thought process.
 - [ ] **Speed Optimization:**
   - Investigate ways to improve the speed by which each module's input and output are amended and sent to the next module in line.
 
+- [ ] **Continuous Internal Thought:**
+  - When conscious beings think, we don't just wait for an input and generate an output, period. So in the future, atta will basically be thinking continuously in a loop between its global workspace, its reasoning and cognitive modules, and its global workspace, continuously in a loop so it can dwell and iterate on thoughts while waiting for the next user input.
+  - This needs to be done in a way that it can be interrupted at any time by the user's input. 
+
 - [ ] **Retrieval-Augmented Generation (RAG):**
   - Implement RAG for each module to enable access to past responses.
   - Configure short-term memory so each module can see the last 10 user inputs and final outputs.
