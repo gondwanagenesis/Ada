@@ -210,7 +210,7 @@ continuous learning, all while simulating a sentient thought process.
 # To-Do List
 
 - [ ] **Double Check Memory for storage in JSON**
-  - SHould work, but need other eyes on it to Ensure the entire thought process from each module, including inputs and outputs, is stored correctly. This is so we can fine tune models lately on this data to elimiate the need for prompt induced behavior.
+  - SHould work, but need other eyes on it to Ensure the entire thought process from each module, including inputs and outputs, is stored correctly. This is so we can fine tune models lately on this data to eliminate the need for prompt induced behavior.
   - Label all stored data properly for easy reference and retrieval.
 
 - [ ] **Prompt Optimization:**
