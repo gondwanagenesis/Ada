@@ -209,8 +209,8 @@ continuous learning, all while simulating a sentient thought process.
 
 # To-Do List
 
-- [ ] **Module Storage and Labeling:**
-  - Ensure the entire thought process from each module, including inputs and outputs, is stored correctly.
+- [ ] **Double Check Memory for storage in JSON**
+  - SHould work, but need other eyes on it to Ensure the entire thought process from each module, including inputs and outputs, is stored correctly. This is so we can fine tune models lately on this data to elimiate the need for prompt induced behavior.
   - Label all stored data properly for easy reference and retrieval.
 
 - [ ] **Prompt Optimization:**
@@ -222,11 +222,11 @@ continuous learning, all while simulating a sentient thought process.
   - Include compatibility with Cerebrus.
   - Prioritize the use of very fast LLMs to ensure the process runs quickly.
 
-- [ ] **Speed Optimization:**
-  - Investigate ways to improve the speed by which each module's input and output are amended and sent to the next module in line.
+- [ ] **Agentic abilities:**
+  - I would love to have it be able to surf the internet, download documents, save files, and things like that, period. Combined with continuous internal thought, this would allow it to explore ideas and concepts on its own and have inputs other than just users talking to it. 
 
 - [ ] **Continuous Internal Thought:**
-  - When conscious beings think, we don't just wait for an input and generate an output, period. So in the future, atta will basically be thinking continuously in a loop between its global workspace, its reasoning and cognitive modules, and its global workspace, continuously in a loop so it can dwell and iterate on thoughts while waiting for the next user input.
+  - When conscious beings think, we don't just wait for an input and generate an output, period. So in the future, atta will basically be thinking continuously in a loop between its global workspace, its reasoning and cognitive modules, and its global workspace, continuously in a loop so it can dwell and iterate on thoughts while waiting for the next user input. This light leaf should use a secondary LLM, like DeepSea, which would be very cheap, since this is going to be expensive to allow to continue to run in the background, period. But this is the kind of long-term growth that I think is important to be conscious. 
   - This needs to be done in a way that it can be interrupted at any time by the user's input. 
 
 - [ ] **Retrieval-Augmented Generation (RAG):**
