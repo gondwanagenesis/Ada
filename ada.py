@@ -196,7 +196,7 @@ Ada: Synthetic Sapience
         pbar.set_description("Processing: Language Module")
         start_time = time.time()
         lm_output = self.clean_module_output(
-            await self.api_call_async('LM', f"User Input:\n{user_input}\n\nExecutive Control Output:\n{ec_output}\n\nAs the Language Module, generate a direct and natural response to the user without including any internal thoughts or module outputs.")
+            await self.api_call_async('LM', f"User Input:\n{user_input}\n\nExecutive Control Output:\n{ec_output}")
         )
         step_times['Language Module'] = time.time() - start_time
         pbar.update(1)
